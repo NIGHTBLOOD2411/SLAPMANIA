@@ -2,7 +2,7 @@
 module: M10-UIScreenFlow
 status: InProgress
 owner: shobhit
-last-verified: 2026-10-23
+last-verified: 2026-10-25
 verified-against: (pre-git)
 asmdef: SlapMania.UI
 ---
@@ -101,7 +101,11 @@ HUD stays uGUI. The four match-adjacent screens are also hosted by the bout's ow
   - press squash on links and buttons.
 
   Subclasses add the screen-specific parts:
-  - Title: tap anywhere.
+  - Title: tap anywhere. Two spotlight beams sway out of phase and blink in a looped pattern
+    (`Core.Motion.BlinkPattern`, a pure function of elapsed ms; each level holds, then eases
+    into the next over the last 30 % of its step). The mockup has one beam (`title-beam`); the
+    second is cloned from it at bind, 110 px right and tilted 14° from its top edge, so the
+    generated UXML stays untouched.
   - Loader: a timed fill, then Main Menu replaces it.
   - Main Menu: a scrolling ticker.
   - Search: radar sweep and timer, then Walkout.
@@ -351,7 +355,9 @@ outside the budget.
   full-screen `.fill` layers and the screen background bleed to the panel edges, so taller or
   wider phones gain image, not bars.
 - **Motion.** `Data/UI/UiMotion.asset` (`UiMotionConfig`) holds all durations in ms, including
-  screen in/out, stagger, press, count-up, rays, LIVE pulse and ticker speed. The flow timings
+  screen in/out, stagger, press, count-up, rays, LIVE pulse, ticker speed and the Title beam
+  blink (`titleBeamStepMs` 110, `titleBeamPattern` levels 0..1, `titleBeamOffsetMs` 440 for the
+  second beam; the existing asset picks up the C# defaults until re-saved, unverified). The flow timings
   live there too (loader, search, walkout, tape auto-start, pack reveal). Mockups are static, so
   these are design choices.
 - **Text.** TTFs via `-unity-font-definition`: Barlow for V2, Cabin and Archivo Black for V1
@@ -487,3 +493,4 @@ Bout overlay:    (empty) → pause → [PauseMenu] → Resume → (empty)
 | 2026-10-20 | (pre-git) | **C6 pause button (owner's request).** Pause controls are now a reusable `HudPauseButton` (`Pressed`, `Covers`), routed by `V2Hud._pauseButtons` into `PauseRequested`. `V2Hud.BlocksTap` walks the array with no allocation. The scorebug's pause code moved into the component (`HudScorebug` lost `_pause` / `PauseRequested` / `BlocksTap`). A second button sits in the top-left of the C6 top letterbox (Safe 16,16), away from the mashing area. **Verified in Play over MCP:** during the player's charge the C6 button is live and covers its own centre, while the hidden scorebug button does not; `BlocksTap` is true on it and false mid-screen; the tap source's `Blocker` agrees. Clicking it paused mid-Charge (`timeScale` 0, PauseMenu, fill and sim time frozen) and Resume continued the charge. Game-view capture checked. EditMode 195/195. Prototype rebuilt; note DEBUG S-085, the builder's pre-existing capsule-fighter fallback, which is unrelated to this change. §2, §3, §11 updated. |
 | 2026-10-23 | (pre-git) | **HUD for the hold-ring attack ([ADR-0014](../Decisions/ADR-0014-hold-ring-attack-mode.md)).** Each view reads `MatchDirector.CurrentAttackMode`. `HudTiming`: ring from `HoldRingMeter.Closure`, chrome fade at the press (new `_chrome`/`_shade` groups), mode copy (`_captionText`, `_hint`, `_hintSub`). `HudCharge`: wind-up arc, reticle hidden, HOLD!/RELEASE! (`_prompt`, `_hint`). `HudIntro`: mode hints (`_hintCharge`, `_hintTiming`). `HudScorebug`: the shot clock counts the press timeout, then the time to full close. `HudOpponentTurn`: live hold power. `V2Hud`: the opponent-turn screen also shows at `TimingStart`. Copy is constant strings written once per show; nothing new runs per frame except the existing polls (R5). `V2HudBuilder` wires the new fields (M13). §2 screen table updated. |
 | 2026-10-23 | (pre-git) | **Fix: mirrored touches on the front end (S-091).** `GammaPresenter.ScreenToPanel` flipped y on positions UI Toolkit had already flipped to top-left, so a tap at y hit `932 - y` (the Store tab bar was dead). It is now the identity. Found over the Unity MCP: hit-test, wiring and a synthetic `ClickEvent` were all fine; only the screen-to-panel mapping was wrong |
+| 2026-10-25 | (uncommitted) | **Title: second spotlight + pattern blink.** `TitleView` clones the mockup beam (no UXML edit), sways the pair out of phase and drives both opacities from `BlinkPattern.Evaluate` (new, `Core.Motion`, 16 EditMode tests) with the second beam offset by `titleBeamOffsetMs`. New `UiMotionConfig` fields `titleBeamStepMs`, `titleBeamPattern`, `titleBeamOffsetMs`. No per-frame allocation (opacity is a struct write). Clone geometry copies the source's laid-out rect on `GeometryChangedEvent`, not its inline style at bind (S-101). Checked in Play Mode: both beams draw and trade off |

@@ -34,6 +34,12 @@ namespace SlapMania.Data
         [Min(0.5f)] public float raysSpinSeconds = 20f;
         [Tooltip("LIVE dot and 'tap to start' blink period.")]
         [Min(50)] public int livePulseMs = 900;
+        [Tooltip("Title spotlights: how long each level of the blink pattern is held.")]
+        [Min(16)] public int titleBeamStepMs = 110;
+        [Tooltip("Title spotlights: brightness per step (0..1), looped. Default: triple pulse, hold, flicker.")]
+        public float[] titleBeamPattern = { 1f, 0.2f, 1f, 0.2f, 1f, 1f, 1f, 1f, 0.15f, 0.6f, 0.1f, 0.6f, 0.35f, 0.35f };
+        [Tooltip("Title spotlights: the second beam runs this far behind the first, so they trade off.")]
+        [Min(0)] public int titleBeamOffsetMs = 440;
         [Tooltip("Bottom news ticker speed.")]
         [Min(1f)] public float tickerPxPerSecond = 40f;
 
