@@ -87,7 +87,7 @@ Unattended (CI, batchmode, the Unity MCP bridge): call `SlapMania.Editor.Prototy
 
 ## Build Profiles and scripting defines
 
-Defines are managed through Unity 6 **Build Profiles** (`Assets/_Project/Settings/BuildProfiles/`), not by hand-editing Player Settings. This is exactly the problem Build Profiles were added to solve, and it removes the "I forgot to strip the defines" failure class.
+**Target:** defines managed through Unity 6 **Build Profiles** (`Assets/_Project/Settings/BuildProfiles/`), which removes the "I forgot to strip the defines" failure class. **Today (2026-10-25) no Build Profiles exist.** `SLAPMANIA_DEBUG` is set in Player Settings for Standalone, Android and iOS (DEBUG S-098, S-100), so it must be removed by hand for release (RELEASE-CHECKLIST). Set defines through the Editor (Player Settings UI or `PlayerSettings.SetScriptingDefineSymbols`), then check `ProjectSettings.asset` on disk: an API call alone did not persist once (S-098).
 
 | Define | Purpose | Dev | QA | Release |
 |---|---|---|---|---|
@@ -129,7 +129,7 @@ EnhancedTouchSupport.Enable();
 
 ## Tags and layers
 
-> **Planned, not created.** `ProjectSettings/TagManager.asset` has only Unity's built-in layers today. Adding these is a ProjectSettings change (R9, ask first). Until then the arena, fighters and FX all sit on Default. The damage cam excludes only the built-in UI layer.
+> **Created and in use** (restored 2026-10-25, DEBUG S-100). The builders require these by name (`SceneBuildUtil.Layer` throws on a missing layer), and scenes store layers by **index**, so never renumber them. An asset-store import that ships its own `ProjectSettings/` (e.g. a "complete project" package) **replaces this table silently**. After any such import, check `TagManager.asset`, `EditorBuildSettings.asset`, `ProjectSettings.asset`, `QualitySettings.asset` and `GraphicsSettings.asset` in `git diff` before you do anything else.
 
 | Layer | Name | Purpose |
 |---|---|---|
