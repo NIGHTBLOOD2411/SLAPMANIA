@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4a927ee793058c64f9779ae0dc6d9e9b
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/Particles/Textures/Helmet_Calm/Unity 5.json
+  uploadId: 369882

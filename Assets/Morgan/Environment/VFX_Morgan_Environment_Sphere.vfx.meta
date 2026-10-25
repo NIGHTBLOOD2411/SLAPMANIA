@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 496bef4def45f20438f4ca8b50c45af3
+VisualEffectImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Environment/VFX_Morgan_Environment_Sphere.vfx
+  uploadId: 369882

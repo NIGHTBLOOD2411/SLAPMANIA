@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Arena_Crowd
+  m_Shader: {fileID: 4800000, guid: 26fb48afb9b9aea40b670e304681f2dc, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _Ambient: 0.327
+    - _ArmsUp: 0.509
+    - _Bob: 0
+    - _BobSpeed: 1.79
+    - _Empty: 0
+    - _FlashShare: 0.282
+    - _FlashSpeed: 2.49
+    - _Jitter: 0.165
+    - _Rim: 0.72
+    - _ScreenShare: 0.175
+    - _Standing: 0.284
+    - _WashHeight: 12
+    m_Colors:
+    - _ClothDark: {r: 0.9333334, g: 0.509804, b: 0.9333334, a: 1}
+    - _ClothLight: {r: 0.09999997, g: 0.089999996, b: 0.10999996, a: 1}
+    - _FlashColor: {r: 3.5, g: 3.8, b: 4.5, a: 1}
+    - _Hair: {r: 0, g: 0, b: 0, a: 1}
+    - _RimColor: {r: 0.55, g: 0.62, b: 0.9, a: 1}
+    - _ScreenColor: {r: 0.25, g: 0.35, b: 0.65, a: 1}
+    - _Seat: {r: 0.01, g: 0.008, b: 0.012, a: 1}
+    - _SkinDark: {r: 0.90943396, g: 0.90943396, b: 0.90943396, a: 1}
+    - _SkinLight: {r: 0.8415094, g: 0.8415094, b: 0.8415094, a: 1}
+    - _WashHigh: {r: 0.295419, g: 0.22767526, b: 0.3735848, a: 1}
+    - _WashLow: {r: 0.7433963, g: 0.7433963, b: 0.7433963, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

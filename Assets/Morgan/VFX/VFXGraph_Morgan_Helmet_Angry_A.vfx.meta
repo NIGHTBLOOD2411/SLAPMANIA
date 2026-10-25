@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: af09027b06bfef8428eee3c2d1bd4cbf
+VisualEffectImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/VFXGraph_Morgan_Helmet_Angry_A.vfx
+  uploadId: 369882

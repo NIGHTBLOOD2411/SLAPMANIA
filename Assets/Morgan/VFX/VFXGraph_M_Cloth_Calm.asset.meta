@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4e18e228e2dbdd149b355e8286223a36
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/VFXGraph_M_Cloth_Calm.asset
+  uploadId: 369882

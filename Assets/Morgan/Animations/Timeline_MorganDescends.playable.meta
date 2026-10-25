@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 29378c5bebfd3c14bb173576775218fc
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Animations/Timeline_MorganDescends.playable
+  uploadId: 369882

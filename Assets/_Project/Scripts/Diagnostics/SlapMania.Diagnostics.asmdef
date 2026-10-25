@@ -1,0 +1,22 @@
+{
+    "name": "SlapMania.Diagnostics",
+    "rootNamespace": "SlapMania.Diagnostics",
+    "references": [
+        "SlapMania.Core",
+        "SlapMania.Data",
+        "SlapMania.Logging",
+        "SlapMania.Presentation",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "SLAPMANIA_DEBUG"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,30 @@
+{
+    "name": "SlapMania.Editor",
+    "rootNamespace": "SlapMania.Editor",
+    "references": [
+        "SlapMania.Core",
+        "SlapMania.Data",
+        "SlapMania.Gameplay",
+        "SlapMania.Logging",
+        "SlapMania.Input",
+        "SlapMania.Presentation",
+        "SlapMania.UI",
+        "SlapMania.App",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

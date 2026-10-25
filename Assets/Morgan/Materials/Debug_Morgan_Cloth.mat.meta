@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1bf0e1d054fb09b4da12513f51b63104
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Materials/Debug_Morgan_Cloth.mat
+  uploadId: 369882

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 961be168393ea8f4b995b25397822039
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Scripts/ConnectMorganMorph.cs
+  uploadId: 369882

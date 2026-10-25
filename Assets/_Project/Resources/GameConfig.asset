@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fc2da01ac723b34eba27663c0f6fbaf, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: SlapMania.Data::SlapMania.Data.GameConfig
+  bout: {fileID: 11400000, guid: ead3d0d4ac4fd6a4fa8e904da9c71b90, type: 2}
+  powerPhase: {fileID: 11400000, guid: a3fa1618db8aa6345a70626348a8f329, type: 2}
+  timingPhase: {fileID: 11400000, guid: 175ee9ba3636a6a42b73befc032ccd74, type: 2}
+  timingZoneLayout: {fileID: 11400000, guid: 745a2d2f5d519e64a9924a752721226e, type: 2}
+  damage: {fileID: 11400000, guid: 7ea9d9a620792e441ae6d26d0903ce70, type: 2}
+  holdRing: {fileID: 11400000, guid: beed121fbb8e5b54a8ed9a7630bd48be, type: 2}
+  aiProfiles:
+  - {fileID: 11400000, guid: 72eaa2ba804cf7a49a6a70c806ef4120, type: 2}
+  - {fileID: 11400000, guid: 63db31c6c87b4ec43addaf8f7225f83d, type: 2}
+  - {fileID: 11400000, guid: bb909a7e40564ef4e88d0fad04902de2, type: 2}
+  - {fileID: 11400000, guid: 2f38208f655cb2443a142f96afdd4a01, type: 2}
+  - {fileID: 11400000, guid: 4dc003676a477114c9d02fef72e54516, type: 2}
+  feel: {fileID: 11400000, guid: 3d8f66e5c5455774bb1e271e07ac5675, type: 2}
+  hudAttention: {fileID: 11400000, guid: 2439bde5b68fb724aae5b6d1ca0b5dfc, type: 2}
+  uiMotion: {fileID: 11400000, guid: b4e0c2d28fbb6e549a21745842d23142, type: 2}
+  frontEndPage: 0

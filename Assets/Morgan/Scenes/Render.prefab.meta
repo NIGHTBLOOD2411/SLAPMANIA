@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: e5a83b92bdf744043a9605cd373fd0a5
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Scenes/Render.prefab
+  uploadId: 369882

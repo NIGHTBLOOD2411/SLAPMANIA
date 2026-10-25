@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 969fdff9e1938b146b0033853b508f4c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Audio/Morgan_MIXER.mixer
+  uploadId: 369882

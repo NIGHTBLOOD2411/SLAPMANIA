@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 44443d3ce5aef5442b0e839b8f8e6633
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/Particles/Textures/Cloth_Angry_Detail/Morgan_Angry_Detail.json
+  uploadId: 369882

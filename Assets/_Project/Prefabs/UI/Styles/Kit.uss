@@ -1,0 +1,131 @@
+/* Slap Mania V2 UI kit for UI Toolkit (M10, ADR-0013).
+ *
+ * Hand-written. Per-element styles live inline in the generated screen UXML
+ * (Tools/mockup2uxml); this sheet holds only what is shared or stateful:
+ * screen defaults, the label reset, and the two kit form controls.
+ * Mirrors Docs/Reference/Mockups/V2/kit.css; `--v1` modifiers carry the V1 page's sizes. */
+
+.fe-screen {
+    -unity-font-definition: url("project://database/Assets/_Project/Art/Fonts/Barlow/Barlow-Regular.ttf");
+    font-size: 16px;
+    color: rgb(243, 244, 246);
+}
+
+/* The default runtime theme pads and margins labels by 1-2 px; the mockups' text boxes
+   have none, and every converted coordinate assumes that. */
+.fe-screen .unity-label,
+.fe-screen .unity-text-element {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    -unity-paragraph-spacing: 0;
+}
+
+/* ── .sw toggle ─────────────────────────────────────────────────── */
+.kit-switch {
+    width: 46px;
+    height: 26px;
+    border-top-left-radius: 13px;
+    border-top-right-radius: 13px;
+    border-bottom-left-radius: 13px;
+    border-bottom-right-radius: 13px;
+    background-color: rgba(255, 255, 255, 0.18);
+    transition-property: background-color;
+    transition-duration: 180ms;
+}
+
+.kit-switch--on {
+    background-color: rgb(227, 38, 47);
+}
+
+.kit-switch__knob {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 20px;
+    height: 20px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background-color: rgb(255, 255, 255);
+    transition-property: left;
+    transition-duration: 180ms;
+    transition-timing-function: ease-out-cubic;
+}
+
+.kit-switch--on .kit-switch__knob {
+    left: 23px;
+}
+
+/* V1's .sw (Mockups/V1/Pause): a 48 x 28 track (set inline) and a 22 px knob, which ends on
+   the same left: 23px. */
+.kit-switch--v1 {
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+.kit-switch--v1.kit-switch--on {
+    background-color: rgb(227, 39, 47);
+}
+
+.kit-switch--v1 .kit-switch__knob {
+    width: 22px;
+    height: 22px;
+    border-top-left-radius: 11px;
+    border-top-right-radius: 11px;
+    border-bottom-left-radius: 11px;
+    border-bottom-right-radius: 11px;
+}
+
+/* ── .rng slider ────────────────────────────────────────────────── */
+/* The CSS box is the 6 px track (set inline from the mockup); the 20 px thumb overflows it. */
+.kit-slider {
+    justify-content: center;
+    overflow: visible;
+}
+
+.kit-slider__track {
+    height: 100%;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.14);
+    overflow: hidden;
+}
+
+.kit-slider__fill {
+    height: 100%;
+    background-color: rgb(227, 38, 47);
+}
+
+/* Chrome keeps the thumb inside the track: its centre travels from 10 px to width - 10 px. */
+.kit-slider__rail {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 0;
+    bottom: 0;
+}
+
+.kit-slider__thumb {
+    position: absolute;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    margin-left: -10px;
+    margin-top: -10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background-color: rgb(255, 255, 255);
+}

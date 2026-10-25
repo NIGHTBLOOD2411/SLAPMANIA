@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slap Mania – UI Kit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&amp;family=Cabin:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0B0D;font-family:'Cabin',sans-serif;color:#fff}
+a{color:#fff}a:hover{color:#ffd9da}
+.lbl{font-weight:700;text-transform:uppercase;letter-spacing:.14em}
+.dsp{font-family:'Archivo Black',sans-serif;text-transform:uppercase;line-height:.92}
+.redtxt{background:linear-gradient(180deg,#FF6166 0%,#EE2F37 48%,#B0101A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #4d060b) drop-shadow(0 10px 18px rgba(0,0,0,.55))}
+.goldtxt{background:linear-gradient(180deg,#FFF1C4 0%,#FFD34D 45%,#D98A0B 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #5a3a05)}
+.panel{background:linear-gradient(180deg,rgba(30,30,36,.9),rgba(12,12,16,.94));border:1px solid rgba(255,255,255,.1)}
+.btn-red{background:linear-gradient(180deg,#FF545A 0%,#E3272F 55%,#B0121A 100%);box-shadow:0 5px 0 #650910,0 12px 22px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,255,255,.35)}
+.btn-silver{background:linear-gradient(180deg,#F6F6F7 0%,#D3D4D7 60%,#B9BABE 100%);color:#232428;box-shadow:0 5px 0 #6c6d72,0 12px 22px rgba(0,0,0,.5),inset 0 2px 0 #fff}
+.btn-dark{background:rgba(16,16,20,.8);border:1px solid rgba(255,255,255,.18)}
+.plate{background:linear-gradient(180deg,#F4F4F5 0%,#D5D6D9 60%,#BDBEC2 100%)}
+.vs{background:#1B1B1F;clip-path:polygon(0 0,100% 0,80% 100%,20% 100%)}
+.hp{height:9px;background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.45);border-radius:2px;overflow:hidden;display:flex}
+.hpf{height:100%;background:linear-gradient(180deg,#FFE27A,#F2A516)}
+.hpd{height:100%;background:#E3272F}
+.sw{display:flex;flex-direction:column;gap:6px}
+.chip{height:64px;border-radius:12px;border:1px solid rgba(255,255,255,.12)}
+.sec{display:flex;flex-direction:column;gap:16px}
+.h{font-size:12px;color:#8A8C92}
+</style>
+</helmet>
+<div style="width: 1460px; height: 800px; box-sizing: border-box; padding: 56px 60px; background: radial-gradient(ellipse 60% 60% at 20% 0%, #1c1014 0%, #0B0B0D 60%); display: flex; flex-direction: column; gap: 40px;">
+<div style="display: flex; align-items: flex-end; justify-content: space-between;">
+<div style="display: flex; align-items: flex-end; gap: 24px;">
+<img src="/_blob/41bdb3c5515d0775580d5be78239f938" alt="Slap Mania" style="width: 190px; height: 88px;">
+<div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px;">
+<span class="dsp" style="font-size: 32px;">UI Kit</span>
+<span style="font-size: 14px; color: #B5B7BC;">Colors, type and components used across every screen · frame 430 × 932</span>
+</div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; flex-grow: 1;">
+
+<div style="display: flex; flex-direction: column; gap: 36px;">
+<div class="sec">
+<span class="lbl h">Color</span>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+<div class="sw"><div class="chip" style="background: linear-gradient(180deg,#FF545A,#E3272F 55%,#B0121A);"></div><span style="font-size: 12px; font-weight: 700;">Slap Red</span><span style="font-size: 11px; color: #8A8C92;">#E3272F</span></div>
+<div class="sw"><div class="chip" style="background: #650910;"></div><span style="font-size: 12px; font-weight: 700;">Blood</span><span style="font-size: 11px; color: #8A8C92;">#650910</span></div>
+<div class="sw"><div class="chip" style="background: linear-gradient(180deg,#FFE27A,#F2A516);"></div><span style="font-size: 12px; font-weight: 700;">Gold</span><span style="font-size: 11px; color: #8A8C92;">#F2BE4E</span></div>
+<div class="sw"><div class="chip" style="background: #5AB8F5;"></div><span style="font-size: 12px; font-weight: 700;">Gem Blue</span><span style="font-size: 11px; color: #8A8C92;">#5AB8F5</span></div>
+<div class="sw"><div class="chip" style="background: linear-gradient(180deg,#F4F4F5,#BDBEC2);"></div><span style="font-size: 12px; font-weight: 700;">HUD Silver</span><span style="font-size: 11px; color: #8A8C92;">#D5D6D9</span></div>
+<div class="sw"><div class="chip" style="background: #3A3B3F;"></div><span style="font-size: 12px; font-weight: 700;">Plate Ink</span><span style="font-size: 11px; color: #8A8C92;">#3A3B3F</span></div>
+<div class="sw"><div class="chip" style="background: #1B1B1F;"></div><span style="font-size: 12px; font-weight: 700;">VS Black</span><span style="font-size: 11px; color: #8A8C92;">#1B1B1F</span></div>
+<div class="sw"><div class="chip" style="background: #050506;"></div><span style="font-size: 12px; font-weight: 700;">Arena</span><span style="font-size: 11px; color: #8A8C92;">#050506</span></div>
+</div>
+</div>
+<div class="sec">
+<span class="lbl h">Type</span>
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; align-items: baseline; gap: 16px;"><span class="dsp redtxt" style="font-size: 56px; display: inline-block;">Smash</span><span style="font-size: 12px; color: #8A8C92;">Archivo Black · 56–200 · callouts</span></div>
+<div style="display: flex; align-items: baseline; gap: 16px;"><span class="dsp" style="font-size: 26px;">Slap now</span><span style="font-size: 12px; color: #8A8C92;">Archivo Black · 16–34 · buttons, titles</span></div>
+<div style="display: flex; align-items: baseline; gap: 16px;"><span style="font-size: 21px; font-weight: 700;">SLASHER</span><span style="font-size: 12px; color: #8A8C92;">Cabin Bold · 21 · HUD names</span></div>
+<div style="display: flex; align-items: baseline; gap: 16px;"><span class="lbl" style="font-size: 12px;">Round 1 · Live</span><span style="font-size: 12px; color: #8A8C92;">Cabin Bold caps +14% · 9–13 · labels</span></div>
+<div style="display: flex; align-items: baseline; gap: 16px;"><span style="font-size: 15px;">Tap when the needle hits perfect.</span><span style="font-size: 12px; color: #8A8C92;">Cabin · 13–16 · body</span></div>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 36px;">
+<div class="sec">
+<span class="lbl h">Buttons</span>
+<div style="display: flex; flex-direction: column; gap: 18px;">
+<button class="btn-red" style="height: 64px; border: 0; border-radius: 16px; color: #fff; cursor: pointer;"><span class="dsp" style="font-size: 22px;">Primary · Slap now</span></button>
+<div style="display: flex; gap: 12px;">
+<button class="btn-silver" style="flex-grow: 1; height: 56px; border: 0; border-radius: 14px; cursor: pointer; color: #232428;"><span class="dsp" style="font-size: 16px;">Secondary</span></button>
+<button class="btn-dark" style="flex-grow: 1; height: 56px; border-radius: 14px; cursor: pointer; color: #fff;"><span class="dsp" style="font-size: 16px;">Tertiary</span></button>
+</div>
+<div style="display: flex; gap: 12px; align-items: center;">
+<button style="height: 48px; padding: 0 18px; border-radius: 14px; border: 2px solid rgba(255,74,81,0.6); background: transparent; color: #FF7A7F; cursor: pointer;"><span class="dsp" style="font-size: 14px;">Destructive</span></button>
+<button aria-label="Pause" style="width: 44px; height: 44px; border-radius: 10px; background: rgba(10,10,12,0.7); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><rect x="5" y="4" width="5" height="16" rx="1"></rect><rect x="14" y="4" width="5" height="16" rx="1"></rect></svg></button>
+<div style="height: 44px; padding: 0 16px; border-radius: 22px; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.22);"><span style="width: 10px; height: 10px; border-radius: 5px; background: #E3141B;"></span><span class="lbl" style="font-size: 11px;">Ghost pill</span></div>
+</div>
+</div>
+</div>
+<div class="sec">
+<span class="lbl h">Currency &amp; tabs</span>
+<div style="display: flex; gap: 10px;">
+<div style="height: 32px; padding: 0 10px 0 6px; border-radius: 16px; display: flex; align-items: center; gap: 6px; background: rgba(10,10,12,0.72); border: 1px solid rgba(255,255,255,0.14);"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F2BE4E" stroke="#9A6A18" stroke-width="2"></circle><circle cx="12" cy="12" r="5.5" fill="none" stroke="#9A6A18" stroke-width="2"></circle></svg><span style="font-size: 14px; font-weight: 700;">12,450</span></div>
+<div style="height: 32px; padding: 0 10px 0 6px; border-radius: 16px; display: flex; align-items: center; gap: 6px; background: rgba(10,10,12,0.72); border: 1px solid rgba(255,255,255,0.14);"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#5AB8F5" stroke="#1D5E8C" stroke-width="1.6" stroke-linejoin="round"></path></svg><span style="font-size: 14px; font-weight: 700;">320</span></div>
+<span class="lbl" style="font-size: 10px; align-self: center; padding: 5px 8px; border-radius: 6px; background: #E3272F;">Critical ×1.5</span>
+</div>
+<div style="height: 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 4px; box-sizing: border-box; border-radius: 12px; background: rgba(255,255,255,0.06);">
+<span class="lbl" style="font-size: 11px; border-radius: 9px; background: #E3272F; display: flex; align-items: center; justify-content: center;">Active</span>
+<span class="lbl" style="font-size: 11px; color: #B5B7BC; display: flex; align-items: center; justify-content: center;">Tab</span>
+<span class="lbl" style="font-size: 11px; color: #B5B7BC; display: flex; align-items: center; justify-content: center;">Tab</span>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 36px;">
+<div class="sec">
+<span class="lbl h">Match HUD</span>
+<div style="position: relative; width: 420px; height: 150px; border-radius: 14px; background: linear-gradient(180deg,#1a1c22,#08080a); overflow: hidden;">
+<div class="plate" style="position: absolute; left: 20px; top: 24px; width: 184px; height: 62px; clip-path: polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%); display: flex; flex-direction: column; justify-content: center; padding-left: 82px; box-sizing: border-box;"><span class="lbl" style="font-size: 8px; color: #5E6066; letter-spacing: 0.1em;">Champion</span><span style="font-size: 19px; font-weight: 700; line-height: 1; color: #3A3B3F;">BUCK</span></div>
+<img src="/_blob/0468ebc12b533b41d19c51629316657f" alt="" style="position: absolute; left: 20px; top: 18px; width: 74px; height: 74px; box-sizing: border-box; border: 3px solid #E6E6E8; object-fit: cover;">
+<div class="plate" style="position: absolute; left: 216px; top: 24px; width: 184px; height: 62px; clip-path: polygon(10% 0, 100% 0, 100% 100%, 10% 100%, 0 50%); display: flex; flex-direction: column; justify-content: center; padding-left: 20px; box-sizing: border-box;"><span class="lbl" style="font-size: 8px; color: #5E6066; letter-spacing: 0.1em;">Challenger</span><span style="font-size: 19px; font-weight: 700; line-height: 1; color: #3A3B3F;">SLASHER</span></div>
+<img src="/_blob/089a203a6e05678cfd31b4bf1cd3dfd6" alt="" style="position: absolute; left: 326px; top: 18px; width: 74px; height: 74px; box-sizing: border-box; border: 3px solid #E6E6E8; object-fit: cover;">
+<div class="vs" style="position: absolute; left: 181px; top: 6px; width: 58px; height: 56px; display: flex; align-items: center; justify-content: center;"><span class="dsp" style="font-size: 25px;">VS</span></div>
+<div class="hp" style="position: absolute; left: 20px; top: 100px; width: 140px;"><div class="hpf" style="width: 36%;"></div><div class="hpd" style="width: 28%;"></div></div>
+<div class="hp" style="position: absolute; left: 260px; top: 100px; width: 140px; flex-direction: row-reverse;"><div class="hpf" style="width: 82%;"></div></div>
+<div style="position: absolute; left: 170px; top: 98px; width: 80px; height: 24px; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center;"><span style="font-size: 15px; font-weight: 700; color: #111;">00:15</span></div>
+<div class="lbl" style="position: absolute; left: 0; top: 128px; width: 420px; text-align: center; font-size: 12px; letter-spacing: 0.06em;">ROUND 1</div>
+</div>
+</div>
+<div class="sec">
+<span class="lbl h">Power meter</span>
+<div style="position: relative; height: 30px;">
+<div style="position: absolute; left: 0; top: 4px; width: 420px; height: 22px; border-radius: 6px; overflow: hidden; display: flex; border: 2px solid rgba(255,255,255,0.7); box-sizing: border-box;">
+<div style="width: 55%; background: linear-gradient(180deg,#5E6066,#3A3B3F);"></div>
+<div style="width: 28%; background: linear-gradient(180deg,#FFE27A,#F2A516);"></div>
+<div style="width: 10%; background: linear-gradient(180deg,#FF6166,#B0121A);"></div>
+<div style="width: 7%; background: linear-gradient(180deg,#5E6066,#3A3B3F);"></div>
+</div>
+<div style="position: absolute; left: 367px; top: -4px; width: 6px; height: 38px; border-radius: 3px; background: #fff; box-shadow: 0 0 12px #fff;"></div>
+</div>
+</div>
+<div class="sec">
+<span class="lbl h">Callouts</span>
+<div style="display: flex; align-items: center; gap: 22px;">
+<span class="dsp redtxt" style="font-size: 44px; display: inline-block;">Smash</span>
+<span class="dsp goldtxt" style="font-size: 40px; display: inline-block;">-28</span>
+<div style="height: 40px; padding: 0 18px; display: flex; align-items: center; background: linear-gradient(180deg,#FF545A,#E3272F 55%,#B0121A); clip-path: polygon(6% 0,100% 0,94% 100%,0 100%);"><span class="dsp" style="font-size: 18px;">Your slap!</span></div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1460,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

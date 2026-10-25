@@ -1,0 +1,21 @@
+{
+    "name": "SlapMania.Presentation",
+    "rootNamespace": "SlapMania.Presentation",
+    "references": [
+        "SlapMania.Core",
+        "SlapMania.Data",
+        "SlapMania.Gameplay",
+        "SlapMania.Logging",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

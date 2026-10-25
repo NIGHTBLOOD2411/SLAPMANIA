@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slap Mania – Round Countdown</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&amp;family=Cabin:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#050506;font-family:'Cabin',sans-serif;color:#fff}
+a{color:#fff}a:hover{color:#ffd9da}
+.lbl{font-weight:700;text-transform:uppercase;letter-spacing:.14em}
+.dsp{font-family:'Archivo Black',sans-serif;text-transform:uppercase;line-height:.92}
+.redtxt{background:linear-gradient(180deg,#FF6166 0%,#EE2F37 48%,#B0101A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #4d060b) drop-shadow(0 10px 18px rgba(0,0,0,.55))}
+.plate{background:linear-gradient(180deg,#F4F4F5 0%,#D5D6D9 60%,#BDBEC2 100%)}
+.vs{background:#1B1B1F;clip-path:polygon(0 0,100% 0,80% 100%,20% 100%)}
+.hp{height:9px;background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.45);border-radius:2px;overflow:hidden;display:flex}
+.hpf{height:100%;background:linear-gradient(180deg,#FFE27A,#F2A516)}
+.hpd{height:100%;background:#E3272F}
+</style>
+</helmet>
+<div style="position: relative; width: 430px; height: 932px; overflow: hidden; background: #050506;">
+<img src="/_blob/1db9009be971a82a346f7e9dff4e2ad6" alt="" style="position: absolute; left: 0; top: 0; width: 430px; height: 932px; object-fit: cover;">
+<div style="position: absolute; left: 0; top: 0; width: 430px; height: 932px; background: rgba(5,5,6,0.35);"></div>
+
+<div style="position: absolute; left: 0; top: 0; width: 430px; height: 280px; background: linear-gradient(180deg, rgba(5,5,6,0.9) 0%, rgba(5,5,6,0.5) 55%, rgba(5,5,6,0) 100%);"></div>
+<div style="position: absolute; left: 352px; top: 38px; display: flex; align-items: center; gap: 8px;"><span class="lbl" style="font-size: 12px; letter-spacing: 0.06em;">LIVE</span><span style="width: 13px; height: 13px; border-radius: 50%; background: #E3141B; box-shadow: 0 0 10px #ff2a2a;"></span></div>
+<div class="plate" style="position: absolute; left: 24px; top: 82px; width: 184px; height: 62px; clip-path: polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%); display: flex; flex-direction: column; justify-content: center; padding-left: 82px; box-sizing: border-box;"><span class="lbl" style="font-size: 8px; color: #5E6066; letter-spacing: 0.1em;">Champion</span><span style="font-size: 19px; font-weight: 700; line-height: 1; color: #3A3B3F;">BUCK</span></div>
+<img src="/_blob/0468ebc12b533b41d19c51629316657f" alt="Buck" style="position: absolute; left: 24px; top: 76px; width: 74px; height: 74px; box-sizing: border-box; border: 3px solid #E6E6E8; object-fit: cover; background: #111;">
+<div class="plate" style="position: absolute; left: 222px; top: 82px; width: 184px; height: 62px; clip-path: polygon(10% 0, 100% 0, 100% 100%, 10% 100%, 0 50%); display: flex; flex-direction: column; justify-content: center; padding-left: 20px; box-sizing: border-box;"><span class="lbl" style="font-size: 8px; color: #5E6066; letter-spacing: 0.1em;">Challenger</span><span style="font-size: 19px; font-weight: 700; line-height: 1; color: #3A3B3F;">SLASHER</span></div>
+<img src="/_blob/089a203a6e05678cfd31b4bf1cd3dfd6" alt="Slasher" style="position: absolute; left: 332px; top: 76px; width: 74px; height: 74px; box-sizing: border-box; border: 3px solid #E6E6E8; object-fit: cover; background: #111;">
+<div class="vs" style="position: absolute; left: 186px; top: 64px; width: 58px; height: 56px; display: flex; align-items: center; justify-content: center;"><span class="dsp" style="font-size: 25px;">VS</span></div>
+<div class="hp" style="position: absolute; left: 24px; top: 156px; width: 140px;"><div class="hpf" style="width: 100%;"></div></div>
+<div class="hp" style="position: absolute; left: 266px; top: 156px; width: 140px; flex-direction: row-reverse;"><div class="hpf" style="width: 100%;"></div></div>
+<div style="position: absolute; left: 175px; top: 154px; width: 80px; height: 24px; border-radius: 12px; background: #FFFFFF; display: flex; align-items: center; justify-content: center;"><span style="font-size: 15px; font-weight: 700; color: #111;">00:15</span></div>
+<div class="lbl" style="position: absolute; left: 0; top: 184px; width: 430px; text-align: center; font-size: 13px; letter-spacing: 0.06em;">ROUND 1</div>
+
+<a href="SlapTurn.dc.html" style="position: absolute; left: 0; top: 300px; width: 430px; height: 420px; display: flex; flex-direction: column; align-items: center; gap: 0; text-decoration: none;">
+<span class="dsp redtxt" style="font-size: 50px; text-align: center; display: inline-block; letter-spacing: -0.01em;">Round<br>starts in</span>
+<span class="dsp" style="font-size: 200px; line-height: 1; color: #FFFFFF; letter-spacing: -0.03em; text-shadow: 0 8px 0 rgba(0,0,0,0.35), 0 20px 40px rgba(0,0,0,0.6);">03</span>
+</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":430,"height":932}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

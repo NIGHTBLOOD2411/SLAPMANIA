@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3e34b9bd05694764989ca74a68f3576d
+VisualEffectImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/VFXSubBlock_Morgan_Shockwave_Crumble.vfxblock
+  uploadId: 369882

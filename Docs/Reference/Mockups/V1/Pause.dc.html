@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slap Mania – Pause</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&amp;family=Cabin:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#050506;font-family:'Cabin',sans-serif;color:#fff}
+a{color:#fff}a:hover{color:#ffd9da}
+.lbl{font-weight:700;text-transform:uppercase;letter-spacing:.14em}
+.dsp{font-family:'Archivo Black',sans-serif;text-transform:uppercase;line-height:.92}
+.redtxt{background:linear-gradient(180deg,#FF6166 0%,#EE2F37 48%,#B0101A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #4d060b) drop-shadow(0 10px 18px rgba(0,0,0,.55))}
+.panel{background:linear-gradient(180deg,rgba(34,34,40,.96),rgba(14,14,18,.97));border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 60px rgba(0,0,0,.7)}
+.btn-red{background:linear-gradient(180deg,#FF545A 0%,#E3272F 55%,#B0121A 100%);box-shadow:0 5px 0 #650910,0 14px 26px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,255,255,.35)}
+.btn-silver{background:linear-gradient(180deg,#F6F6F7 0%,#D3D4D7 60%,#B9BABE 100%);color:#232428;box-shadow:0 5px 0 #6c6d72,0 14px 26px rgba(0,0,0,.5),inset 0 2px 0 #fff}
+.row{display:flex;align-items:center;gap:12px;height:52px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sw{appearance:none;-webkit-appearance:none;width:48px;height:28px;border-radius:14px;background:rgba(255,255,255,.18);position:relative;cursor:pointer;margin:0;flex-shrink:0}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:11px;background:#fff}
+.sw:checked{background:#E3272F}
+.sw:checked::after{left:23px}
+</style>
+</helmet>
+<div style="position: relative; width: 430px; height: 932px; overflow: hidden; background: #050506;">
+<img src="/_blob/1db9009be971a82a346f7e9dff4e2ad6" alt="" style="position: absolute; left: 0; top: 0; width: 430px; height: 932px; object-fit: cover; filter: blur(8px) brightness(0.45);">
+
+<div class="panel" style="position: absolute; left: 32px; top: 176px; width: 366px; box-sizing: border-box; padding: 28px 24px 24px; border-radius: 22px; display: flex; flex-direction: column; gap: 18px;">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+<span class="dsp redtxt" style="font-size: 44px; display: inline-block;">Paused</span>
+<span style="font-size: 13px; color: #C9CACD;">Round 1 · Buck vs Slasher · 00:11 left</span>
+</div>
+<a href="SlapTurn.dc.html" class="btn-red" style="height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M7 4l13 8-13 8z"></path></svg>
+<span class="dsp" style="font-size: 20px;">Resume</span>
+</a>
+<div style="display: flex; flex-direction: column;">
+<label class="row">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9CACD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"></path><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"></path></svg>
+<span style="flex-grow: 1; font-size: 16px; font-weight: 600;">Sound effects</span>
+<input type="checkbox" class="sw" checked>
+</label>
+<label class="row">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9CACD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="17" cy="16" r="3"></circle></svg>
+<span style="flex-grow: 1; font-size: 16px; font-weight: 600;">Crowd &amp; music</span>
+<input type="checkbox" class="sw" checked>
+</label>
+<label class="row">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9CACD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"></rect><path d="M3 8v8M21 8v8"></path></svg>
+<span style="flex-grow: 1; font-size: 16px; font-weight: 600;">Vibration</span>
+<input type="checkbox" class="sw">
+</label>
+</div>
+<button class="btn-silver" style="height: 52px; border: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #232428;">
+<span class="dsp" style="font-size: 16px;">How to play</span>
+</button>
+<a href="Defeat.dc.html" style="height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; border: 2px solid rgba(255,74,81,0.6); color: #FF7A7F;">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF7A7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"></path></svg>
+<span class="dsp" style="font-size: 15px;">Forfeit match</span>
+</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":430,"height":932}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

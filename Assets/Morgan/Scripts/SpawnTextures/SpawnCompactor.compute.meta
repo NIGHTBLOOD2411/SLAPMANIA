@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5d9519334dd583c4c96995134cca65f2
+ComputeShaderImporter:
+  externalObjects: {}
+  currentAPIMask: 4
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Scripts/SpawnTextures/SpawnCompactor.compute
+  uploadId: 369882

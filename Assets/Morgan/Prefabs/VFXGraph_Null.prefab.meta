@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 13aba7f30c437ca468d34a5b38242350
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Prefabs/VFXGraph_Null.prefab
+  uploadId: 369882

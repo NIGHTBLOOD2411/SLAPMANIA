@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 59f10b4fcf5902a4489583035a53d15a
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/Particles/Textures/Cloth_Calm_Detail_B/Morgan_particles_Helmet_Calm.json
+  uploadId: 369882

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 76d92a53f99185c4892dc8c16de600ad
+VisualEffectImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/VFXSubGraph_Morgan_Cloth_Morph.vfxoperator
+  uploadId: 369882

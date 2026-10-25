@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 941c00e277fc14346b0ee15b0c9df4bd
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Scripts/Editor/Unity.DemoTeam.Morgan.Editor.asmdef
+  uploadId: 369882

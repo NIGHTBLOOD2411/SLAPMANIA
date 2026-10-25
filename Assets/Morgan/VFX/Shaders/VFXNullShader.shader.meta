@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: e5bf74c0b2790304bba1ab97419c3a8f
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/Shaders/VFXNullShader.shader
+  uploadId: 369882

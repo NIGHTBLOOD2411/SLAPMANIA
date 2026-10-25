@@ -1,0 +1,23 @@
+{
+    "name": "SlapMania.App",
+    "rootNamespace": "SlapMania.App",
+    "references": [
+        "SlapMania.Core",
+        "SlapMania.Data",
+        "SlapMania.Gameplay",
+        "SlapMania.Logging",
+        "SlapMania.Input",
+        "SlapMania.Presentation",
+        "SlapMania.UI",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

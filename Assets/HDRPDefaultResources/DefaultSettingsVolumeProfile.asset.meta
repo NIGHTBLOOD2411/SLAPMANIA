@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4ffb360fddaeba8428f814f9560a24cb
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/HDRPDefaultResources/DefaultSettingsVolumeProfile.asset
+  uploadId: 369882

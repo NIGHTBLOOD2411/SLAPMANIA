@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "SUGGESTED settings for Slap Mania. NOT active. Review, then rename to settings.json to enable (it is committed and shared). Per-machine tweaks go in settings.local.json, which is gitignored. See .claude/README.md.",
+
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git stash list:*)",
+      "Bash(rg:*)",
+      "mcp__unityMCP__read_console",
+      "mcp__unityMCP__find_gameobjects"
+    ],
+    "ask": [
+      "Edit(ProjectSettings/**)",
+      "Write(ProjectSettings/**)",
+      "MultiEdit(ProjectSettings/**)",
+      "Edit(Packages/manifest.json)",
+      "Write(Packages/manifest.json)",
+      "Edit(Packages/packages-lock.json)",
+      "Write(Packages/packages-lock.json)",
+      "Edit(**/*.asmdef)",
+      "Write(**/*.asmdef)",
+      "mcp__unityMCP__execute_code",
+      "mcp__unityMCP__manage_editor",
+      "mcp__unityMCP__manage_scene",
+      "mcp__unityMCP__manage_asset",
+      "mcp__unityMCP__manage_gameobject"
+    ],
+    "deny": [
+      "Read(**/*.keystore)",
+      "Read(**/keystore*)",
+      "Read(**/*.p12)",
+      "Read(**/*.jks)"
+    ]
+  },
+
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/cs_guard.py\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/session_end.py\""
+          }
+        ]
+      }
+    ]
+  }
+}

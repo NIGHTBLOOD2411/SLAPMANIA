@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 195a8cc5337efac47ba09759d49ab28b
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/Particles/Textures/Body_Calm_Detail/Unity 5.json
+  uploadId: 369882

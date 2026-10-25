@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4a6845473f31db64aba0520f1487e215
+VisualEffectImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/VFXGraph_Morgan_Body_Angry_Outer.vfx
+  uploadId: 369882

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f0ceb6f8dd63d51429996b15af139d2d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Scripts/FreezeWorldRotation.cs
+  uploadId: 369882

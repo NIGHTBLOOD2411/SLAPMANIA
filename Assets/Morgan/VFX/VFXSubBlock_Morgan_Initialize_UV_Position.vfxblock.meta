@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 9c85d872bf49aee44b59b66b04daeae1
+VisualEffectImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/VFXSubBlock_Morgan_Initialize_UV_Position.vfxblock
+  uploadId: 369882

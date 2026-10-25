@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8799d19270786384e8ee0f3bb04e706d
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Prefabs/Cloth_Null.prefab
+  uploadId: 369882

@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 438b0efdbf2811143b3d1d24975d41d2, type: 3}
+  m_Name: HudAttention
+  m_EditorClassIdentifier: SlapMania.Data::SlapMania.Data.HudAttentionConfig
+  scorebugRestAlpha: 0.75
+  scorebugHitHoldMs: 600
+  topShadeAlpha: 0.6
+  liveDotPulse: 0
+  introDimAlpha: 0.15
+  introRingScale: 0.62
+  letterboxPx: 36
+  chargeVignetteAlpha: 0.47
+  chargeGaugeScale: 0.73
+  chargePromptScale: 0.625
+  chargePromptFadeAfterTaps: 3
+  chargePromptFadedAlpha: 0.5
+  chargeRaysRestAlpha: 0.3
+  chargeRaysKickAlpha: 0.5
+  chargeRaysKickMs: 120
+  chargeLockDot: 0
+  bannerHoldMs: 800
+  bannerFadeMs: 200
+  showPowerMeter: 0
+  timingShadeAlpha: 0.6
+  impactHeadlineScale: 0.73
+  impactHeadlineHoldMs: 450
+  impactHeadlineFadeMs: 250
+  impactDamageScale: 0.75
+  impactDamageHoldMs: 800
+  impactDamageFadeMs: 300
+  impactAutoHideMs: 1100
+  impactRaysAlpha: 0.35
+  impactRaysMs: 350
+  impactVignetteAlpha: 0.58
+  impactYieldMs: 150
+  opponentVignetteAlpha: 0.46
+  opponentVignettePulse: 0
+  braceCuePulseMs: 300
+  incomingHoldMs: 1000
+  incomingFadeMs: 250
+  koSlamDelayMs: 350
+  koTintAlpha: 0.25
+  koTintHoldMs: 1200
+  koSettledTintAlpha: 0.5
+  koBurstAlpha: 0.5
+  koStatsAtBoutEnd: 1

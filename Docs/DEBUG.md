@@ -1,0 +1,336 @@
+# Slap Mania — Debug Handbook
+
+Last updated: 2026-09-26
+
+One file, not a folder, so `Ctrl+F` finds anything. Sections are **append-only** — nothing is ever deleted, only marked Resolved.
+
+---
+
+## 0. How to use this doc
+
+1. Search §2 for your symptom first. Most of the table is *predicted* failure modes written before the bug happened — being wrong about a prediction is fine and gets noted; being surprised is what costs days.
+2. If it is not there, check §3 (known issues) for something similar.
+3. **Before you start investigating, add your symptom to §2 with `Cause: unknown`.** You will not write it afterwards — the relief of fixing it erases the memory. This inversion is the single most important habit in this document.
+4. When you fix it, fill in the cause and the fix, and open a `KI-####` entry if it took more than an hour.
+
+---
+
+## 1. First-response checklist
+
+Before any real debugging:
+
+1. Is `SLAPMANIA_DEBUG` in the active Build Profile's scripting defines?
+2. Does it reproduce in the Editor, or is it device-only? Device-only goes straight to §6.
+3. Open the debug overlay (three fingers held 0.6 s, or `F1` in Editor). Is the FSM where you expect it to be?
+4. Dump the last match (`Cheats -> Dump Match JSON`) and read the event timeline.
+5. Are stale debug overrides in `PlayerPrefs`? Run `Tools -> Slap Mania -> Clear Debug Overrides`.
+6. Did you change a ScriptableObject in Play Mode and lose it on exit? The `PlayModeStateGuard` warns about this — check the console.
+
+---
+
+## 2. Symptom → Cause → Fix
+
+`Status`: `Predicted` (written in advance, not yet seen) · `Confirmed` · `Fixed KI-####` · `Wrong` (prediction did not hold).
+
+### Input
+
+| ID | Symptom | Likely cause | Diagnostic | Fix | Module | Status |
+|---|---|---|---|---|---|---|
+| S-001 | Power bar fills noticeably slower on device than in Editor | Per-frame polling (`WasPressedThisFrame`) collapses two or more taps that arrive in one frame. At 30 fps a 12 taps/s player silently loses about a third of their taps. | Overlay Input tab: raw taps/sec vs the Input System Debugger's event count | Count taps from **events** (`InputAction.started`, or `EnhancedTouch.Touch.onFingerDown`), never from per-frame polling | M02 | Predicted |
+| S-002 | Power bar fills roughly twice as fast when the player rests a second thumb on the screen | Every finger's `began` phase counts as a tap | Overlay Input tab: active touch count vs accepted taps | De-dupe by `finger.index`; enforce a per-finger minimum interval (~45 ms) and a global cap (~22 taps/s) | M02 | Predicted |
+| S-003 | First tap of every charge window is ignored | The charge window opens on a frame boundary after a UI transition, and the tap that triggered it is consumed by the previous screen | Recorder: first `Tap` timestamp vs `ChargeBegin` | Open the charge window on the *event* that triggered it; add an ~80 ms input grace window before `ChargeBegin` | M02 | Predicted |
+| S-004 | Taps register while a popup is open | `EventSystem.IsPointerOverGameObject()` without the `fingerId` overload returns wrong results on touch | Enable `LogChannel.Input` verbose | Use the `fingerId` overload; gate all gameplay input on the current FSM state, not on UI raycasts alone | M02 | Predicted |
+| S-005 | Taps drop under heavy mashing on one specific device | Input System polling frequency default (60 Hz) below the tap rate | Overlay: rejected-tap reason counts | `InputSystem.settings.pollingFrequency = 120` | M02 | Predicted |
+
+### Timing meter
+
+| ID | Symptom | Likely cause | Diagnostic | Fix | Module | Status |
+|---|---|---|---|---|---|---|
+| S-010 | Red zone is impossible to hit on a low-end phone | Marker advanced by `pos += speed * dt`; at 30 fps one frame moves the marker further than the red band is wide | Overlay Slap tab: marker delta per frame vs zone width | Zone widths authored in **ms of travel**; marker position is a pure function of `Time.timeAsDouble - startTime`. See ADR-0004 | M04 | Predicted |
+| S-011 | Player swears they hit red, the game says yellow | Marker evaluated at frame time rather than at the touch event's timestamp — up to 33 ms of error at 30 fps | Overlay shows position-at-event-time and position-at-frame-time side by side; recorder compares `TapEvent.deviceTime` to `TimingStop.frameTime` | Evaluate `MarkerOscillator.PositionAt(tapEvent.time)` using the Input System event timestamp | M04 | Predicted |
+| S-012 | Marker drifts or jitters after several minutes of play | Float accumulation in the oscillator; `Time.time` float precision degrades in long sessions | Log marker position at a known elapsed `t`; the `MarkerOscillator_At10000Seconds_NoDrift` test should catch this first | Pure function of `double` elapsed time, reset per turn | M04 | Predicted |
+| S-013 | A garbage roll commits the instant the timing phase opens | The player's still-moving mash finger from the charge phase commits immediately | Recorder: delta between `TimingBegin` and the committing `Tap` | `armDelay = 0.15 s` during which taps are ignored. This is the number-one bug in this genre — do not ship without it | M04 | Wrong: seen 2026-10-23, and 0.15 s alone is too short. Fixed by S-093 ([ADR-0017](Decisions/ADR-0017-aim-cue-and-spam-gap.md)) |
+| S-014 | Occasional free Perfect on the first frame of the timing phase | Randomized `startPhase` happened to land inside the red band | Recorder: `startPhase` in the turn header | Resample `startPhase` if it falls within `perfectCentre ± 0.05` | M04 | Predicted |
+| S-015 | Timing phase hangs when the player does nothing | No timeout | Overlay: time-in-state exceeds `maxDuration` | `timeout = 3.0 s` resolving at the marker's current position with `timedOut = true`. Never a hang, never a free pass | M04 | Predicted |
+
+### Damage, health, flow
+
+| ID | Symptom | Likely cause | Diagnostic | Fix | Module | Status |
+|---|---|---|---|---|---|---|
+| S-020 | Damage "feels wrong" — big power plus red zone does less than expected | A clamp applied in the wrong order, a non-linear power curve in the top decile, or a defense modifier silently scaling | Overlay Slap tab shows every intermediate term | `DamageMath.Compute` returns a `DamageResult` struct carrying every intermediate value, and the overlay renders all of them | M05 | Predicted |
+| S-021 | Finisher animation plays on a non-lethal hit | Finisher tested against health *before* damage applied, or a float compared `<= 0` after clamping | Recorder: `HealthChanged` before/after vs `FinisherTriggered` | One source of truth: `FinisherRule.IsFinisher(healthBefore, damage)` in Core, unit-tested with exact-zero and overkill cases. Predict, branch, commit | M05 M06 | Predicted |
+| S-022 | Opponent reaches zero health but the match does not end | The FSM missed a transition because the death event fired during a state that ignores it | Overlay State tab: FSM state and time-in-state | Queue the death and process it at the next legal transition point; assert on illegal transitions | M01 | Predicted |
+| S-023 | A match never terminates | Damage floor or per-slap ramp misconfigured so damage rounds to zero | `MatchDirector_FuzzedDuel_TerminatesWithin40Turns` (10k seeded runs) | `minDamageFloor` plus the 6%/slap ramp, with `maxTurns = 40` forcing sudden death as a backstop | M01 M05 | Predicted |
+| S-024 | Match replay does not reproduce the AI's behaviour | AI uses `UnityEngine.Random` (global static state) | Recorder header has no seed, or the seed is ignored | Every random draw goes through an injected seeded `IRandom`; the seed is recorded in the match header | M07 | Predicted |
+
+### Snapshot / rendering
+
+| ID | Symptom | Likely cause | Diagnostic | Fix | Module | Status |
+|---|---|---|---|---|---|---|
+| S-030 | Snapshot texture is pure black on Android, fine in Editor | Several candidates: pass culled by Render Graph; RT read before the camera rendered; MSAA RT readback; `camera.Render()` used instead of `SubmitRenderRequest` | `SnapshotDebugWindow` thumbnails with the "uniformly black?" flag; Render Graph Viewer | `builder.AllowPassCulling(false)`; `antiAliasing = 1`; `RenderPipeline.SubmitRenderRequest(cam, new UniversalRenderPipeline.SingleCameraRequest { destination = rt })` | M09 | Predicted |
+| S-031 | Custom render pass silently never runs, no errors | Render Graph culls a pass whose output nothing in the frame consumes | Render Graph Viewer shows the pass greyed out | `builder.AllowPassCulling(false)`. This is the number-one "black with no errors" cause in URP 17 | M09 | Predicted |
+| S-032 | Snapshots are washed out and milky | Linear/sRGB mismatch — RT created linear, sampled as sRGB by the `RawImage` | Grey-card test: render `#808080`, read back one pixel, expect `128 ± 3` | Create atlas and scratch with `GraphicsFormat.R8G8B8A8_SRGB` via `RenderTextureDescriptor.graphicsFormat`, not the legacy `RenderTextureFormat` + `ReadWrite` enum | M09 | Predicted |
+| S-033 | Snapshots are upside down on some Android devices | `SystemInfo.graphicsUVStartsAtTop` differs between Vulkan/GLES; a raw `Graphics.Blit` flips on some paths | Put a "TOP" text quad on the `SnapshotOnly` layer during bring-up — a flip becomes obvious instead of subtly wrong | A camera rendering into `targetTexture` is always right-side-up. For the downsample use `Blitter.BlitQuad` / `renderGraph.AddBlitPass` with an explicit `scaleBias`, never `Graphics.Blit` | M09 | Predicted |
+| S-034 | Memory climbs every slap; crash after roughly 30 slaps | RenderTextures or `Texture2D`s not released; a full-res texture kept per slap | Memory Profiler snapshot diff across 5 slaps | One persistent atlas allocated in Boot; a snapshot is a tile index, not a texture. See ADR-0006 | M09 | Predicted |
+| S-035 | Atlas contents lost after backgrounding the app | GLES3 context loss destroys RT contents | Reproduces only on a GLES3-forced build | Guard with `if (!_atlas.IsCreated()) _atlas.Create();`; on `OnApplicationPause(false)` mark existing handles as placeholders and set `snapshotDegraded` | M09 | Predicted |
+| S-036 | Frame bandwidth spike / Mali validation warnings when capture is enabled | A pass injected mid-frame reads the active colour target, breaking Vulkan subpass merging (`m_UseNativeRenderPass: 1`) | Render Graph Viewer; GPU profiler bandwidth counters | Put anything reading camera colour at `RenderPassEvent.AfterRendering`. Better: the photo camera renders to its own target and never injects into the main camera | M09 | Predicted |
+| S-037 | The HUD appears in the photograph | HUD canvas set to Screen Space - Camera, or the photo camera's culling mask includes the UI layer | Inspect a captured tile in `SnapshotDebugWindow` | HUD must be Screen Space - **Overlay**, so no camera renders it and it is structurally incapable of appearing in a photo | M09 M10 | Predicted |
+
+### Presentation
+
+| ID | Symptom | Likely cause | Diagnostic | Fix | Module | Status |
+|---|---|---|---|---|---|---|
+| S-040 | Animation event (impact frame) never fires | Event placed on the last frame of a clip; or the clip was replaced and the event lost; or the handler is on a different GameObject than the Animator | `LogChannel.Presentation`; the FSM watchdog logs the clip name | Never place events on frame 0 or the final frame. Drive impact from `ISlapTimingSource`, with the animation event as one implementation and a scripted timer as the fallback | M08 | Predicted |
+| S-041 | UI freezes during hitstop | A presentation tween running on scaled time while `timeScale` is 0.02 | Overlay Perf tab shows `timeScale` | The shared `Tweener` **defaults to unscaled**. In a hitstop game this is the single largest source of this class of bug | M08 M10 | Predicted |
+| S-042 | Physics explodes when time resumes after hitstop | `Time.fixedDeltaTime` not scaled alongside `timeScale` | Watch rigidbody velocities across the resume | Scale `Time.fixedDeltaTime = 0.02f * Time.timeScale` inside `HitStopController`, and always restore to 1.0 | M08 | Predicted |
+| S-043 | Camera teleports when a finisher cutscene ends | Timeline animated the camera transform directly | Compare camera transform on the last cutscene frame vs the first gameplay frame | Timeline animates a `CameraShotTarget` transform that the rig follows — never the camera itself. The rig stays authoritative and shake still composes on top | M16 M18 | Predicted |
+| S-044 | Frame hitch on the very first slap only | Shader variant compilation plus the first VFX `Instantiate` plus the first RT allocation, all on the same frame | Profiler: `Shader.CreateGPUProgram` spike | Warm up: `ShaderVariantCollection.WarmUp()` at load, pre-warm the VFX pool and the snapshot scratch RT during the match intro | M08 M15 | Predicted |
+| S-099 | C5's PERFECT ZONE / x3.0 DAMAGE tags are cut off at the left edge (only "ZONE" / "AGE" visible) | The tags hang at a fixed -97 px left of the ring (V2 C5), and the ring follows the opponent's head; with the opponent on the left of frame, the tags land off-screen | HUD audit captures of Proto_Bout in Play over MCP, 2026-10-23 (`Captures/HudAudit/p3_timing_Player_t1.png`) | `HudTiming.PlaceTags` mirrors both tags to the right of the ring (pivot + x) when their reach would cross the left edge; written only when the side changes. Verified in Play (`Captures/HudAfter/p3_timing_late_Player_t1.png`) | M10 | Fixed 2026-10-23 |
+| S-100 | Two headlines on screen at once: D1 "SMASH!" (and its -66) still up while D2 "INCOMING!" slides in | Each HUD view ran its own lifetime: D1 auto-hid after 1.25 s, while D2 shows on the rival's `ChargeStart`, which arrives ~0.5 s after the impact | Same audit, `Captures/HudAudit/p5_impact_late_Player_t1.png` | Attention budget (POLISH §9): D1's headline is gone by 700 ms, and on any `ChargeStart` `V2Hud` calls `HudImpact.Yield()` (headline + number out in `impactYieldMs`) and defers D2's show until the headline is off. Verified in Play: at +700 ms neither headline is up, INCOMING! follows | M10 | Fixed 2026-10-23 |
+
+### Audio
+
+| ID | Symptom | Likely cause | Diagnostic | Fix | Module | Status |
+|---|---|---|---|---|---|---|
+| S-050 | Impact SFX audibly lags the visual hit | Android output latency is 50–150 ms; `PlayOneShot` on the contact frame arrives late | Measure with a high-speed camera, or compare `contactDsp` to the visual freeze start | Schedule the impact stack **backwards from a predicted `contactDsp`** published at windup start with at least 180 ms of lead. See M11 §E.6 | M11 | Predicted |
+| S-051 | Tap ticks turn to mud and steal every voice during charge | One `PlayOneShot` per tap — 20 to 38 one-shots per charge phase | Overlay Audio tab: active voices, drop count | Two looping sources (drone + ratchet) whose pitch tracks power and tap rate, plus at most two decimated accents. Five voices instead of 38 | M11 | Predicted |
+| S-052 | Audio goes permanently silent on iOS with no error, app still responsive | A non-suspending interruption (notification, Siri) killed the audio session without an `OnApplicationPause` callback | The stuck-clock watchdog: `musicCore.timeSamples` unchanged across a 2 s window while `Application.isFocused` | `AudioDeviceWatchdog` calls `RecoverAfterDeviceChange()`. This is the nastiest audio bug on iOS and it is invisible in the Editor | M11 | Predicted |
+| S-053 | Lights and chants drift off the beat after backgrounding | `AudioSettings.dspTime` stops advancing while suspended, so the `BeatClock` anchor is now offset by the suspend duration | Overlay Beat tab: `EstimatedDsp - AudioSettings.dspTime` | Re-anchor in `RecoverAfterDeviceChange()`: `dspAnchor = dspTime - (coreStem.timeSamples / clip.frequency)` | M11 M14 | Predicted |
+| S-054 | Everything stops on headphone plug/unplug | `OnAudioConfigurationChanged(deviceWasChanged: true)` stops all sources and voids pending `PlayScheduled` timestamps | Overlay Platform tab counts config-change events | Full `RecoverAfterDeviceChange()` routine — cancel pending schedules, restart stems as one batch, re-anchor, re-apply the mixer snapshot | M11 | Predicted |
+| S-055 | Crackling on a mid-range Android | DSP buffer too small for the device's render thread | Overlay: DSP CPU %, underrun count | DSP buffer 512 on High/Mid, 1024 on Low tier. Reduce concurrent Vorbis decoders via the quality tier | M11 | Predicted |
+| S-056 | Game is silent on iOS with the ringer switch on | `AVAudioSessionCategoryAmbient` respects the silent switch — this is correct, expected behaviour | Not a bug | Product decision, documented in M11 §G.4. Ship a first-run tip: "Turn off Silent Mode for the full arena" | M11 | Predicted |
+
+### Build and project
+
+| ID | Symptom | Likely cause | Diagnostic | Fix | Module | Status |
+|---|---|---|---|---|---|---|
+| S-060 | Release build contains the debug overlay | `SLAPMANIA_DEBUG` left in the Release Build Profile's defines | `BuildVerifyPreprocessor` | An `IPreprocessBuildWithReport` that **fails the build** if the Release profile defines `SLAPMANIA_DEBUG` or `SLAPMANIA_CHEATS` | M13 | Predicted |
+| S-098 | No `SlapLog.Info/Warn/Trace` line ever reaches the Console, even in the Editor; a `SLAPMANIA_DEBUG`-constrained assembly would not compile at all | `SLAPMANIA_DEBUG` was never added to Player Settings (`scriptingDefineSymbols: {}` in `ProjectSettings.asset`), so every `[Conditional("SLAPMANIA_DEBUG")]` call site was deleted in every build, Editor included | Code read 2026-10-23 while planning the M16 camera recorder | Define added for Standalone, Android and iOS ([ADR-0020](Decisions/ADR-0020-camera-keyframe-tracks-and-runtime-recorder.md)). Expect the Console to get noisier: those log calls were always there. RELEASE-CHECKLIST still removes it for release (S-060). **First fix did not persist:** `PlayerSettings.SetScriptingDefineSymbols` over MCP followed by `AssetDatabase.SaveAssets` changed only the in-memory settings, so `ProjectSettings.asset` kept `scriptingDefineSymbols: {}` and an Editor restart dropped the define (the recorder assembly disappeared). Re-applied and written with `File > Save Project`; check the asset text, not the Player Settings UI | M13 | Fixed 2026-10-23 |
+| S-099 | A strong but non-lethal slap shakes like a finisher | `CameraRig.Kick(strength)` inferred "lethal" from `strength >= 1`, but `BoutController` clamps intensity to 1 for any slap at or above `recoilDamageForFull` | Code read 2026-10-25 | `Kick(strength, lethal)`: BoutController passes `d.IsLethal`, and the director's `Impact` picks the lethal preset only then | M16 | Fixed 2026-10-25 (`Impact(0.8, false)` -> Impact preset and `Impact(1, true)` -> Finisher, verified in Play; a live slap's Kick call checked by code read) |
+| S-061 | Editor works, device shows a null config | Config loaded via an Editor-only path, or managed stripping removed a type only referenced through `SerializeReference` | `adb logcat -s Unity:V` | `link.xml` or `[Preserve]`; keep Managed Stripping Level at Minimal until release, then re-test | M00 | Predicted |
+| S-062 | Second Play Mode session in the Editor behaves differently from the first | Static state not reset — will bite hard once Enter Play Mode Options is enabled | Enable Enter Play Mode Options now and fix the fallout while it is cheap | `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]` reset for every static field | M00 | Predicted |
+| S-063 | UI overlaps the notch or the home indicator in portrait | `Screen.safeArea` not applied | Device Simulator with a notched profile | `SafeAreaFitter` on every full-screen canvas, re-applied on orientation and resolution change. Note the tap zone sits at the bottom, exactly where the iOS home indicator is | M10 | Predicted |
+| S-064 | URP's Rendering Debugger opens by itself during play | URP's runtime debug UI uses a multi-finger tap gesture on mobile, which collides with heavy tapping | Reproduces only in Development builds | Choose a non-colliding overlay gesture and keep the FSM-state gate (three fingers only outside Charge/Timing). Verify URP's current default gesture before choosing | M13 | Predicted |
+| S-065 | Device testing results are meaningless | `QualitySettings.m_CurrentQuality` is `1` (PC), not the Mobile level | Overlay Perf tab shows the active quality level | Set the per-platform default for Android and iOS to the Mobile level. This is wrong in the project as shipped from the template | M00 | Predicted |
+| S-066 | `CS1061: 'MatchSignals' does not contain a definition for 'Raise…'` on every `Signals.Raise*(…)` call in `MatchDirector` (18 errors), though the methods are plainly in `MatchSignals.cs` | `MatchSignals` is in `SlapMania.Core` with `internal` `Raise*` methods; `MatchDirector` calls them from `SlapMania.Gameplay`. An `internal` member of *another* assembly is invisible to member lookup, so the compiler reports CS1061 (no definition) rather than CS0122 (inaccessible) — which hides the real cause | Member exists in the `.cs` but is `internal`, and the call site is in a different asmdef from the definition. Check the two files' owning assemblies before assuming the member is missing | Grant friend access from the *owning* assembly: `[assembly: InternalsVisibleTo("SlapMania.Gameplay")]` in `Core/Properties/AssemblyInfo.cs`. Keeps `Raise*` `internal` so only the simulation assembly fires signals (ARCHITECTURE §5). Rejected: making `Raise*` `public`, which would let any subscriber fabricate signals | M01 | Fixed 2026-09-26 |
+| S-067 | EditMode test assembly does not compile: `MarkerOscillatorTests.cs(36,67): error CS1503: Argument 3: cannot convert from 'double' to 'float'`. Every EditMode test is blocked | `MarkerOscillator.NextTimeAtPosition(double startPhase, double sweep, float target, double minLead, double maxLookahead, out double)` — `target` is the one `float` among `double`s, so a bare literal like `0.5` in that slot fails. The logged error came from an earlier revision of the test (not recoverable — pre-git); the file now passes `0.5f` | `Editor.log`: the error at the first compile, then a later `Tundra build success` for `SlapMania.Tests.EditMode.dll` in the same session with no further `error CS` | Pass a float literal (`0.5f`) for `target`. Consider making `target` a `double` like its neighbours when M07 replaces the linear scan with the closed form (M04 §12) | M04 | Fixed before 2026-09-26 02:31 (found stale in the log) |
+| S-068 | Every Unity MCP tool fails and `mcpforunity://instances` reports **0 instances**, although Unity's MCP for Unity window shows "Session Active" and the Editor is open | Two servers. `.mcp.json` launched its own **stdio** server (`--transport stdio`, unpinned); the v10.2.0 package starts its own **HTTP** server on `127.0.0.1:8080` and the Editor attaches to that one. The client's server never has an Editor | `mcpforunity://instances` shows `"transport": "stdio"` with 0 instances; `GET http://127.0.0.1:8080/health` answers `healthy, version 10.2.0`; the port-8080 process's command line carries `--transport http` and a pidfile under `Library/MCPForUnity/RunState/` | `.mcp.json` -> `{"type": "http", "url": "http://127.0.0.1:8080/mcp"}` (ADR-0009 amendment). Restart the Claude session afterwards - MCP config is read at session start. Do **not** also press the window's "Configure" (duplicate `UnityMCP` server) | M13 | Fixed 2026-09-26 |
+| S-069 | Play Mode started over MCP (or any automation) sits on the first frame: `Time.frameCount` stays at 2, `BoutController.Director` is null, no errors | The Editor pauses the player loop while its window is unfocused and `Application.runInBackground` is false. Nothing is wrong with the scene | Read `Time.frameCount` twice a few seconds apart; if it does not move, it is this | Click into Unity, or set `Application.runInBackground = true` **at runtime** for that Play session (resets on exit). Never flip `PlayerSettings.runInBackground` for this - that is `ProjectSettings/` (R9) and changes device behaviour | M13 | Workaround 2026-09-26 |
+| S-070 | Prototype builder saves `BoutController._config` / `TuningHub._config` as **null**; Play logs "no GameConfig ... Disabling" in standalone Proto_Bout | `EditorSceneManager.NewScene(..., Single)` unloads assets no scene references. The `GameConfig` loaded *before* the scene switch became a destroyed object, so the later `SerializedObject` write stored null | Wiring audit (iterate every object-reference field of the built scene) showed the two nulls; everything created after the switch was fine | Re-load assets by path **after** `NewScene`, and `SceneBuildUtil.AssertWired(...)` now fails the build on any null critical reference | M13 | Fixed 2026-09-26 |
+| S-071 | Humanoid fighters interpenetrate at slapping distance; heads cross through each other | Clip import used root position *Based Upon Original* for XZ and Y (`keepOriginalPositionXZ/Y = true`), keeping the Mixamo authoring offset: sampled head sat 0.67 m forward of the GameObject and 0.6 m high | Sample a clip with `AnimationMode.SampleAnimationClip` and compare head/hips to the root | `keepOriginalPositionXZ = false` (centre of mass) and `heightFromFeet = true` in `FighterImportSetup`; the fighter builder re-runs the setup when older settings are found | M08 | Fixed 2026-09-26 |
+| S-072 | Humanoid fighter floats ~1 m above the ring and its body sits ~0.6 m ahead of its GameObject in every pose, even with root settings based on feet / centre of mass | Unity's Humanoid auto-mapper bound **Hips** to the Blender `Armature` object instead of `mixamorig:Hips`. `Armature` rests 0.8 m below and 0.56 m behind the pelvis in the avatar pose, so placing "hips" at hip height lifts and shifts the real body. The ragdoll's hip body landed on the wrong bone too | `ModelImporter.humanDescription.human`: `Hips -> Armature`; runtime foot bone at y = 1.14 | `FighterImportSetup.FixHipsMapping` remaps Hips to the skeleton's `*:Hips` bone and reimports; `FighterBuilder` re-runs setup when the mapping is wrong. Watch for this on every Blender-exported Mixamo rig | M08 | Fixed 2026-09-26 |
+| S-073 | Freshly built Proto_Bout: fighters overlap each other and stand too high in the **Scene view / edit-mode captures** (both skeletons at hips 1.79 m, 0.56 m forward of the root). Once, in an MCP-driven Play started with the Editor unfocused, the same rest pose (swords visible, HUD hidden) showed for ~30 frames before the bout ran normally | Edit mode: expected. No Animator runs, so the fighters show the FBX **rest pose**, whose Hips sit 1.79 m up and 0.56 m ahead of the root (the Mixamo authoring offset; S-072 is why the Animator's pose is right). The Play-mode transient is **unexplained**: it did not reproduce in three further Plays with `runInBackground` set early (S-069) | `Animator.GetBoneTransform(Hips)` vs the root in edit mode and in Play; poll `HumanoidFighterView._hidden[0].activeSelf` and `GetCurrentAnimatorStateInfo(0).normalizedTime` in the first frames of Play | Judge fighter placement in Play only. If the transient returns, log frame, scene count and Awake order for the bout scene | M08/M13 | Open 2026-09-26 (Play transient unreproduced) |
+| S-074 | Knock-out ragdoll falls through the arena floor forever (hips at y = -3154 m ~25 s after the KO). A KO triggered directly in the Victory pose lands fine | The Charge clip steps a knee to the centre line (x = 0.00, y = 0.44) and Attack_Hook a shin to 0.12 m, so the defender's leg started the KO **inside the podium's solid box collider**, whose bottom face was at y = 0. PhysX depenetrated it through the nearest face, downwards, then through the 0.2 m floor slab, and the joints dragged the body after it | Raycast the floor (hit at y 0 - the floor was fine); sample foot and lower-leg bones against the podium footprint across a live bout (an `EditorApplication.update` probe) | The podium became a **slap table**: top, shallow apron, four legs, open underneath, colliders matching the shape. The floor collider is **3 m thick**, so any limb pushed down is pushed back up. Verified: the AI's KO at t = 34.3 s came to rest at hips y = 0.14 m, 2 m from the table | M08/M15 | Fixed 2026-09-26 |
+| S-075 | Front end shows only the clear colour: `ScreenManager.Current` is `None`, depth 0, no error in the Console | Same trap as S-070, in `FrontEndSceneBuilder`: the screen `VisualTreeAsset`s were loaded before `NewScene(Single)` and the switch unloaded them, so all 20 `_screens[i].tree` were wired as null. `View()` then returned null for Title. The `SlapLog.Warn` that names it is compiled out because `SLAPMANIA_DEBUG` is not defined in the editor's player settings | Read `ScreenManager._screens` by reflection in Play: every `tree` null | Carry UXML **paths** through the scene switch and load after `NewScene`; the builder now throws if any `tree` is null after wiring. Consider defining `SLAPMANIA_DEBUG` for editor play so `SlapLog.Warn` is visible | M10/M13 | Fixed 2026-10-19 |
+| S-076 | Front-end captions look cramped next to the mockup: `.cap` tracking (.14em), "CHAMPIONSHIP EDITION" (.5em) render with almost no letter-spacing | In Unity 6000.3.22f1 the USS `letter-spacing` property resolves (resolvedStyle reports it) but changes neither layout nor glyphs for our labels (Barlow via `-unity-font-definition: url(.ttf)`), with the Standard or Advanced text generator | Probe labels "AAAAAAAAAA" at 12px: width 62.5 for letter-spacing 0, 6 and 12; `<cspace=6px>` gives 116.5 (9 gaps x 6) | `Tools/mockup2uxml` emits tracking as a `<cspace=Npx>` rich-text tag plus `padding-right: N` (CSS also spaces after the last glyph). Re-test plain USS letter-spacing on the next Unity upgrade | M10 | Workaround 2026-10-19 |
+| S-077 | After a bout returns to the menus (results -> MAIN MENU), the front end shows a flat grey (46,50,56) screen; touches still work and the panel's render texture holds the correct menu | `GammaPresenter.OnDisable` handed the UIDocument back to the template `FrontEnd.PanelSettings` while FrontEnd unloaded. That created a screen-overlay panel from the asset; panels live as long as their PanelSettings asset, so it outlived the scene, and because the template had `clearColor` on, it cleared the whole screen every frame over the camera and the presenter. A fresh Play never re-attached to the template, so it looked fine | Capture stays grey even with the camera clearing red; the presenter's render texture reads back correct; a fresh Play (no round trip) renders fine | `OnDisable` sets `panelSettings = null` instead of restoring the template; the template asset's `clearColor` is off and only the runtime copy (render target) clears | M10 | Fixed 2026-10-19 |
+| S-078 | `InvalidOperationException: Collection was modified` from `ScreenManager.Update` the first time the Loader hands over to Main Menu (and Search to Walkout) | A screen's tween callback navigates during `ScreenView.Tick`; navigating to a screen for the first time creates its view and adds it to `_views`, which `Update` was enumerating with `foreach` | Stack trace: `Dictionary.ValueCollection.Enumerator.MoveNext` at `ScreenManager.Update` | Tick an index-based `_tickOrder` list (new views append safely; they tick from the next pass) | M10 | Fixed 2026-10-20 |
+| S-079 | The AI's timing lands about one `displayLatencyBias` (30 ms) earlier than it aims: a "Good"-aiming AI drifts toward the outer edge of its band | The AI's synthetic commit goes through the human latency compensation: `TimingMeter.TryCommit` back-dates every commit by `displayLatencyBias`, but the AI does not look at a display, so it commits at the exact crossing time and is judged 30 ms before it | Found reading the code while building the hold ring, 2026-10-20. Check: `AiTapSource.BeginTiming` sets `_commitAt = now + when` with no bias; `elapsedComp = (now - start) - (rawLatency + bias)` | Hold ring: fixed from the start. `BeginHoldRing` schedules the release `+ displayLatencyBias`, like a player lifting when they see gold. TapMarker (2026-10-23): `BeginTiming(..., displayLatencyBias)` schedules `_commitAt = now + when + displayLatencyBias`; `MatchDirector.EnterTiming` passes `TimingPhaseConfig.displayLatencyBias`. Tests: `TimingMeterTests.Ai_AimingPerfect_LandsPerfect_OnTheFastestRound` (round 10: all 12 seeds landed Great before, at 0.045 off centre) and `Director_GivesTheAiTheBias_SoItIsJudgedWhereItAimed` (0.028 off its aim before, under 0.001 after). **Feel change** (M07 §10): the round-1 AI's commits fire 30 ms later; Good 48% → 54%, Perfect 11% → 7%, mean ×1.556 → ×1.478 | M07 | Fixed 2026-10-20 (hold ring), 2026-10-23 (TapMarker) |
+| S-080 | An EditMode allocation test written with `GC.GetAllocatedBytesForCurrentThread()` deltas passes whatever the code allocates (R5 checks silently vacuous) | In the Editor's Mono runtime (6000.3.22f1) the counter reads **0** before and after every allocation | Positive control: read it, allocate `new object[4]`, read again; the delta is 0 | Use the Test Framework constraint `Assert.That(() => ..., Is.Not.AllocatingGCMemory())` (`using Is = UnityEngine.TestTools.Constraints.Is;` plus `using UnityEngine.TestTools.Constraints;` for the `Is.Not` extension), and keep a positive control `Is.AllocatingGCMemory()` in the test so a blind meter fails loudly (`MatchPauseTests`) | M13/TESTING | Fixed 2026-10-20 |
+| S-081 | Mid-Play, the front end's `GammaPresenter` is disabled with "GammaPresenter is not wired" and `UIDocument.panelSettings` is null, although `FrontEnd.unity` on disk is wired; menus render in linear blending | `GammaPresenter.OnDisable` nulls the document's `panelSettings` on purpose (S-077: never hand the template back while the scene unloads). Any `OnDisable` -> `OnEnable` cycle inside one Play session then finds null and refuses. Seen after a script recompile during Play ("Recompile and continue playing" reloads the domain and cycles every MonoBehaviour), triggered by an MCP forced refresh from another session | Read the live `UIDocument.panelSettings` (null) vs the scene file's `m_PanelSettings` (set); presenter `enabled == false` | The presenter remembers its template in a hidden serialized `_template` (kept across a hot reload) and `OnEnable` falls back to it. Verified in Play: presenter disabled -> enabled rebuilt `FrontEnd.PanelSettings (gamma)` and its target. Process rule: never force a script refresh while another session is in Play | M10 | Fixed 2026-10-20 |
+| S-083 | The Editor profiler shows GC allocations in **every** Charge/Timing frame of a bout (R5 says 0 B), which looks like a regression | Mostly Editor-only: TMP's numeric `SetText(format, value)` rebuilds `m_text` as a string under `#if UNITY_EDITOR` (62-66 B whenever a HUD number changes; `TMP_Text.cs` ~l.2735), and each UI Toolkit panel runs `UpdateAssetsInEditor` (live reload, ~7.9 KB every couple of seconds). Two remain unexplained: `PreUpdate.SendMouseEvents` (~44 B/frame, legacy OnMouse dispatch) and `EventSystem.Update` (32 B/frame). Both predate the 2026-10-20 pause work and show before the first pause | Profiler `HierarchyFrameDataView`, PlayerLoop GC column per frame, leaf paths (2026-10-20, 278 frames). Compare with a Development player build per BASELINE: "never in the Editor" | Cause unknown for SendMouseEvents/EventSystem in a player: capture on a device. If they reproduce, look at `InputSystemUIInputModule` settings and at disabling `SendMouseEvents` (no OnMouse* handlers exist) | M10/M02 | Open 2026-10-20 |
+| S-082 | V1 front-end gradient text (`<gradient="V1Red">`, `V1Gold`, `V1Silver`) renders plain white in Play, though `Resources.Load("UI/TextGradients/V1Red")` returns the preset | **A label with a USS `text-shadow` loses its `<gradient>` colours** in UI Toolkit (6000.3.22f1) and draws in its plain colour. V1's `.redtxt`/`.goldtxt`/`.silvertxt` all carry `filter: drop-shadow(...)`, which the converter turned into `text-shadow`; V2's `.rt`/`.gt`/`.st` do not, except Walkout's "VS" (also white, unnoticed because silver is near-white). *Not* the cause, though it looked like it: TextCore skips `Resources.Load` inside text jobs (`ValidateHtmlTag` guards it with `!IsExecutingJob`), but UI Toolkit falls back to the main thread, and a never-cached preset renders correctly | Probe labels side by side in Play: `<gradient="Red">` and `<gradient="V1Red">` are red without a shadow and white with one. A brand-new preset on 20 labels created at once renders correctly, so no cache warm-up is needed | `Tools/mockup2uxml` never puts `text-shadow` on a label with gradient runs. A **hard** shadow (no blur, e.g. `0 3px 0 #4d060b`) becomes a *shadow twin*: a container holding a plain label in the shadow colour, glyphs pushed down by the offset, and an absolute gradient label on top (`fe-shadow`, `fe-shadow-face`). A soft shadow is dropped (CONVERSION-REPORT lists both) | M10 | Fixed 2026-10-20 |
+| S-084 | A converted paragraph that wraps to two or three lines in the mockup runs on as one line in Unity, past its panel (V1 Loading's pro tip, V1 Defeat's "Toughen up your chin" card) | The runtime theme sets `white-space: nowrap` on `.unity-label`, so no label wraps unless told to; the converter also sized every text box as one line | `resolvedStyle.whiteSpace` is `NoWrap` on the label while every ancestor is `Normal`; its layout width (258 px) is already right | `Tools/mockup2uxml` predicts CSS wrapping from the font's advance widths (`ttfmetrics.py`, `cmap` + `hmtx`) and the box's width (`Converter.avail`), and gives a label that wraps `white-space: normal` plus a box of n lines. Only labels that clearly overflow change; V2 has none | M10 | Fixed 2026-10-20 |
+| S-085 | `Build Playable Prototype` generates `Proto_Bout` with **capsule** fighters (`PlaceholderFighterView`), not the humanoid Alucard; only a Console warning says so ("Humanoid fighter unavailable, using capsules: No model importer at Assets/_Project/Animations/Alucard Sword Animation.fbx") | The base model was moved to `Characters/FBX/Alucard/` on 2026-09-26 18:51 (the `@clip` FBXs stayed in `Animations/`), but `FighterImportSetup.AlucardBase` still points at `Animations/`. `PrototypeSceneBuilder` catches the `FighterBuilder` exception and falls back to capsules by design, so every rebuild since then has quietly produced capsules (three in the 2026-10-19/20 Editor session) | `grep "Humanoid fighter unavailable" Editor.log`; in Play, `BoutController._playerView` is a `PlaceholderFighterView` | `FighterImportSetup.FindBaseModel(AlucardStem)` finds the base by exact file name under `Assets/_Project` and throws on none or two. The clips come from `AlucardClipFolder` (`Animations/`), and `SetUpHumanoidSet` takes both folders instead of assuming the clips sit next to the base. `BuildNonInteractive` now throws before touching any scene when the fighter cannot be built; the interactive menu keeps the capsule fallback and its dialog note. Rebuilt over MCP: both views `HumanoidFighterView`; Play reached BoutEnd with the KO ragdoll at rest (hips y = 0.14 m) | M08/M13 | Fixed 2026-10-23 |
+| S-086 | A Unity MCP `execute_code` call answers `{"success": false, "message": null}` with no error text, but the code **did** run (seen 2026-10-23: `PrototypeSceneBuilder.BuildNonInteractive()` saved both scenes and the prefab; also right after `EnterPlaymode()`) | Unknown. Seen on a ~25 s call, and on a call made while Play Mode was starting (domain reload); a reply timeout or a reload dropping the reply is likely | Do not trust the failure: check the side effects (file mtimes of `Proto_Bout.unity` / `Boot.unity`, `read_console`) and re-query the state with a second, short `execute_code` call | Workaround: keep long calls side-effect-only, then read the result in a separate short call; wait for Play to finish entering before querying | M13 | Open 2026-10-23 |
+| S-087 | Hold ring: the AI (or a player) sometimes never presses; the turn ends as a Miss with `timedOut = true` and power 0.25 | `HoldRingMeter.TryPress` accepted a press only in state `Ready`, and `Arming -> Ready` happens in `Tick`. One long frame (an MCP `execute_code` compile in the Editor; a GC or app-switch hitch on device) covered the arm delay **and** the AI's reaction. The AI ticks before the meter in `MatchDirector.Tick`, so it fired its press while the state still read `Arming`. The press was rejected, its release was ignored, and the press timeout fired | Seen once in Play, 2026-10-23: an opponent turn logged `TimingEnd zone=Miss pos=0 timedOut=True` right after a long editor frame. Repro: `HoldRingMeterTests.Ai_HitchSpanningArmAndPress_StillPlaysTheRing` (one 0.2 s tick) | Arming is judged on the press's own event time (`t >= start + armDelay`), after the stale-stamp clamp, not on the frame's state. A press made during arming is still rejected however late it is delivered (`PressMadeDuringArming_IsRejected_EvenIfDeliveredLate`). TapMarker, same day: `TimingMeter.TryCommit` used the same state check and now uses the same rule: from `Arming` or `Armed`, clamp the event time, then require `t >= start + armDelay`. Tests: `TimingMeterTests.Ai_HitchSpanningArmAndCommit_StillCommits` (6 seeds, all dropped before), `CommitMadeAfterTheArmMoment_CountsEvenBeforeThisFramesTick`, and `CommitMadeDuringArming_IsRejected_HoweverLateItIsDelivered`. The old check also *accepted* a commit made during the arm delay if the arm tick ran before it was delivered | M04 M07 | Fixed 2026-10-23 (hold ring and TapMarker) |
+| S-088 | TapMarker: about **2% of the shipped AI's turns** end `timedOut = true` with no commit, at a steady 60 fps (confirmed in EditMode 2026-10-23; never noticed in Play) | `AiTapSource.BeginTiming` uses `reactionDelay` as its minimum lead from the phase start, but `TimingMeter` ignores commits during `armDelay`. The shipped `Ai_Round1.reactionDelay` 0.12 s is shorter than `TimingPhase.armDelay` 0.15 s (both loaded with `AssetDatabase` in the Editor, 2026-10-23). When the marker reaches the aim within those 30 ms, the AI commits inside the arm delay, the commit is rejected, and the AI does not try again | `TimingMeterTests.Ai_WithTheShippedArmDelayAndReaction_NeverTimesOut`: 4 of 200 timed out before. Editor simulation on the real assets: 37 of 2000 at round 1, 46 of 2000 at round 5 before; 0 after | **Shipped values: fixed by S-079 and S-087 together.** The commit is now stamped at 0.12 + 0.03 = 0.15 s or later and judged on that stamp. Neither fix alone does it. **Still a tuning trap:** any profile with `reactionDelay + displayLatencyBias < armDelay` reopens it; M07's own round-5 and round-10 values (0.08, 0.04) would. In float the shipped values fall 9 ns short (`0.12f + 0.03f < 0.15f`), so only a crossing within 9 ns of the reaction moment is still rejected. Proposed: pass `armDelay` to `BeginTiming` and use `minLead = max(reactionDelay, armDelay − displayLatencyBias)`, or validate the invariant (M07 §4) in `GameConfig.Validate` | M07 M04 | Fixed 2026-10-23, trap closed the same day: `BeginTiming` takes `TimingMeter.EarliestCommitElapsed` as its minimum lead (ADR-0017). Test: `Ai_ThroughTheCueAndGap_WithAReactionShorterThanTheArmDelay_NeverTimesOut` (reaction 0.04 s) |
+| S-089 | The TapMarker commit frame (and the timeout frame) allocated GC memory, against R5. Measured 2026-10-23: `TimingMeterTests.CommitAndTimeout_AllocateNothing` failed with "the commit frame allocated (R5)" | `TimingMeter.TryCommit` and `ForceResolve` unsubscribed with `_source.OnTap -= HandleTap`, and `Begin` subscribed with `+= HandleTap`. Each method-group conversion allocates a new delegate. `HoldRingMeter` already cached `_onPress`/`_onRelease` for this reason. `MatchPauseTests.PauseResumeAndTaps_InsideChargeAndTiming_AllocateNothing` stays inside Timing and never commits, so nothing measured that frame | `Is.Not.AllocatingGCMemory()` around one commit, and around one timeout, each with the positive control (S-080) | `TimingMeter` caches `_onTap = HandleTap` once in its constructor and subscribes/unsubscribes that instance. EditMode 231/231 | M04 | Fixed 2026-10-23 |
+| S-090 | Owner report, 2026-10-23: the bout is "currently unplayable and not working as intended". "My taps barely do damage and the AI wins fast" | The shipped mode was the hold ring (`Bout.asset attackMode: 1`, `GameConfig.bout`). In the ring a tap is a press plus an instant release. With the shipped values a ~90 ms tap closes the ring to ~0.05: a Miss ×0.5 at power ~0.33, about 4 damage, against ~27 per AI slap. Nothing is broken in the code; the mode punishes the input players instinctively give. (Side note, the same day: Play entered while the Editor was unfocused sat in transition, S-069) | `MatchDirector` simulation with the shipped assets, 20 bouts vs `Ai_Round1`: tapping in the ring 0/20 wins, 4.7 a slap; holding to gold ±40 ms 19/20, 48.6 a slap; TapMarker mash + random tap 9/20, 25.9 a slap | Owner decision: default attack mode **TapMarker** (`Bout.asset` 1 → 0 through the Editor, `BoutConfig.attackMode` C# default, ADR-0014 amendment). Re-simulated through `Resources/GameConfig`: 117/117 turns TapMarker, tapping player 9/20. The hold ring stays selectable in the Tuning Hub; it needs a tap answer and a power retune before it is the default again | M01 M04 | Fixed 2026-10-23 |
+| S-091 | Owner report, 2026-10-23: on Store, the top tab bar (PLAY, CAREER, FIGHTERS...) does nothing when tapped. No error in the Console | `GammaPresenter.ScreenToPanel` flipped Y (`_size.y - screen.y`), assuming bottom-left screen pixels. UI Toolkit flips to top-left **before** it calls a `SetScreenToPanelSpaceFunction` function (`PanelEventHandler` on the EventSystem path, and `RuntimePanelUtils.ScreenToPanel`), so Y flipped twice: a tap at y lands at `932 - y` on the panel. Hit-testing was fine; every link was wired; a synthetic `ClickEvent` on `nav-Career` navigated. Centred layouts (pause menu, big middle buttons) hid it, because a mirrored tap still lands on something | MCP probe in Play: `RuntimePanelUtils.ScreenToPanel(panel, (76, 246))` on an 860x1864 screen returned panel (38, **809**), not (38, 123). `EventSystem.RaycastAll` at the Daily Crate (visual y 840) hit nothing (panel y 92 is an empty gap) | `ScreenToPanel` is now the identity: the target texture is the screen 1:1, and UI Toolkit applies the panel scale afterwards | M10 | Fixed 2026-10-23 |
+| S-093 | Owner report, 2026-10-23: "the second multiplier gets consumed as we are spamming to charge the first meter... in the same frame as it enables". The timing ring stops almost the moment it appears, at a random spot | S-013 again: the predicted `armDelay` guard is too short. `TimingPhase.asset armDelay` 0.15 s (YAML) against a human stop reaction of ~250 ms, so at 6-12 taps/s the player's next mash tap after the arm moment commits the ring. Every player timing roll was effectively random, while the AI aims (M07) - which also made the AI read as "too powerful" | Code read 2026-10-23 (`TimingMeter.TryCommit` judges only the arm moment). Recorder delta `TimingBegin` -> committing `Tap` would show 150-250 ms | [ADR-0017](Decisions/ADR-0017-aim-cue-and-spam-gap.md): an AIM cue of 400 ms (`TimingPhaseConfig.aimCueMs`) before the marker moves, with HUD copy "AIM · STOP MASHING". Then a spam gap of 220 ms (`spamGapMs`): a commit counts only if the press before it, including the last charge tap, was at least that long ago. Tests: `TimingMeterTests.AimCue_*`, `Mashing*`, `Masher*`, `SpamGap_*`, and `MatchDirectorTests.MashingOnFromTheChargeIntoTheTimingPhase_DoesNotCommitIt` | M04 M01 | Fixed 2026-10-23 (EditMode; not yet felt on device) |
+| S-094 | Every rematch replays the same bout: the AI mashes, aims and lands the same slaps, and the marker starts where it did last time | `BoutController` seeds the match with `BoutConfig.matchSeed` (918273645 in `Bout.asset`, a fixed number), so `SeededRandom` hands out the same sequence every bout | Code read 2026-10-23 | `BoutConfig.matchSeed` 0 (now the default and the asset value) means `Environment.TickCount` per bout, logged on the Match channel with the ladder level (S-024). Set any other value to pin a bout for a repro | M01 M07 | Fixed 2026-10-23 |
+| S-095 | The AI never gets easier or harder: the same opponent every bout and every round | `BoutController.Start` binds `cfg.ProfileForRound(1)` once, and `GameConfig.aiProfiles` holds only `Ai_Round1`. M07 §3 says M01 reconfigures it per turn; no code does that | Code read 2026-10-23 | [ADR-0018](Decisions/ADR-0018-ai-ladder.md): `aiProfiles` hold five AI tiers (ROOKIE..CHAMPION). `AiLadder.RollTier` picks one near `GameRoot.AiLadderLevel` each bout; a win moves the level up, a loss down. Sim on the shipped assets: AI damage per slap 10.7 / 23.1 / 28.2 / 38.1 / 44.9 by tier. Tests: `AiLadderTests` | M07 M01 | Fixed 2026-10-23 |
+| S-096 | After a frame hitch longer than `maxLatencyComp` (120 ms) right as the timing phase opens, a mash tap made **before** the phase began can commit it | `TimingMeter.TryCommit` clamps an old event time *up* to `now - maxLatencyComp` before it checks the arm moment. Delivered late enough, a charge tap's clamped stamp lands past the arm moment (`TimingMeterTests.StaleCommit_...` asserted this as intended) | Code read 2026-10-23 | `TimingMeter.TryCommit` rejects any press whose raw event time is before the meter began, before clamping. Test: `TimingMeterTests.PressMadeBeforeThePhase_NeverCommits_HoweverLateItIsDelivered` (replaces `StaleCommit_IsClampedToMaxLatencyComp_BeforeTheArmingCheck`'s "late" half, which asserted the bug) | M04 | Fixed 2026-10-23 |
+| S-097 | A slow AI sometimes never taps the marker: its turn ends `timedOut = true` (7 of 160 ROOKIE turns in an Editor sim on the shipped assets, 2026-10-23) | `AiTapSource.BeginTiming`: when the `commitOnFirstPass` roll fails, the AI waits one more traversal (`1 / sweep`, 1.18 s on round 1) without checking that the later pass is still inside `timeout`. A late first crossing plus one traversal lands past 3 s, so the meter times out first | `execute_code` ladder sim through `MatchDirector` with `Resources/GameConfig`, 40 bouts per tier | `AiTapSource.BeginTiming` waits for the next pass only if `when + period + bias < timeout`. Test: `TimingMeterTests.Ai_WaitingForTheNextPass_NeverWaitsPastTheTimeout` (300 seeds, ROOKIE shape) | M07 | Fixed 2026-10-23 |
+| S-092 | After a script recompile **during Play**, no front-end tap does anything; the screens still draw and `panel.Pick` still finds the right element | Unknown in detail. The domain reload runs `GammaPresenter` `OnDisable` -> `OnEnable` (S-081), which destroys the runtime `PanelSettings` and makes a new one. The EventSystem's `PanelRaycaster` (on a GameObject named after the old panel settings) is gone afterwards and was not recreated within thousands of frames | MCP, 2026-10-23: `FindObjectsByType<BaseRaycaster>` returned none after the recompile; `EventSystem.RaycastAll` 0 hits everywhere. After Stop -> Play: one `PanelRaycaster`, hits correct | Workaround: restart Play after a mid-Play recompile. Not fixed | M10 | Open |
+
+---
+
+## 3. Known-issues log
+
+Severity: **S0** crash or data loss · **S1** blocks play · **S2** blocks a shipping feature, workaround exists · **S3** wrong but playable · **S4** cosmetic.
+
+Format — copy this skeleton (`Tools -> Slap Mania -> Log an Issue` fills the header for you):
+
+```markdown
+### KI-0001 — <one-line title>
+- **Date:** YYYY-MM-DD  **Reported by:** <name>  **Module:** M0X
+- **Severity:** S2
+- **Status:** Open -> Investigating -> Fixed (`<sha>`) -> Verified (YYYY-MM-DD)
+- **Affects:** <OS, GPU, URP version, build id>
+- **Repro:** 1. ... 2. ... 3. ...  **Reproduces:** n/5 on device, n/5 in Editor
+- **Root cause:** ...
+- **Resolution:** ...
+- **Regression guard:** <test name>
+- **Symptom-table rows added:** S-0XX
+- **Time lost:** Xh
+```
+
+`Time lost` is not bureaucracy. After ten entries it tells you which module deserves refactoring.
+
+*No entries yet — the project has no code.*
+
+---
+
+## 4. Decision log (ADR index)
+
+| ADR | Title | Status | Modules |
+|---|---|---|---|
+| [0001](Decisions/ADR-0001-docs-outside-assets.md) | Docs live outside `Assets/` | Accepted | — |
+| [0002](Decisions/ADR-0002-assembly-graph.md) | The assembly graph and its one-way edges | Accepted | all |
+| [0003](Decisions/ADR-0003-gameplay-math-is-pure-csharp.md) | Gameplay math is MonoBehaviour-free | Accepted | M03–M07 |
+| [0004](Decisions/ADR-0004-ms-based-timing.md) | Timing is authored in milliseconds | Accepted | M04 |
+| [0005](Decisions/ADR-0005-no-cinemachine.md) | Hand-rolled camera rig, no Cinemachine | Accepted, revisit at M16 | M16 |
+| [0006](Decisions/ADR-0006-snapshot-atlas.md) | One persistent snapshot atlas | Accepted | M09 |
+| [0007](Decisions/ADR-0007-no-third-party-packages.md) | No third-party packages in v1 | Accepted | all |
+| [0008](Decisions/ADR-0008-addressables-and-ccd.md) | Addressables + Unity CCD for asset streaming | Accepted | M19 |
+| [0009](Decisions/ADR-0009-unity-mcp-editor-tooling.md) | Unity MCP bridge as build-excluded editor tooling | Accepted (amended 2026-09-26: HTTP) | M13 |
+| [0010](Decisions/ADR-0010-assembly-graph-refinement.md) | Assembly graph refinement | Accepted | all |
+| [0011](Decisions/ADR-0011-adopt-v2-design-prototype-first.md) | Adopt the V2 design organically, prototype-first | Accepted | all |
+| [0012](Decisions/ADR-0012-arena-mobile-fakes.md) | The arena is built from mobile-true fakes, generated from code | Accepted | M14/M15/M17 |
+| [0013](Decisions/ADR-0013-ui-toolkit-front-end-from-mockups.md) | The front end is UI Toolkit, generated from the V2 mockups | Accepted | M10/M13 |
+| [0014](Decisions/ADR-0014-hold-ring-attack-mode.md) | The hold-ring attack is an Inspector-selectable attack mode | Accepted; amended 2026-10-23 | M01/M04/M07/M10 |
+| [0015](Decisions/ADR-0015-v1-page-behind-a-tuning-switch.md) | The V1 page ships beside V2, chosen by a Tuning Hub switch | Accepted | M10 |
+| [0016](Decisions/ADR-0016-slap-gallery-pre-atlas-capture.md) | Slap gallery: one RenderTexture per photo before the atlas | Accepted | M09/M10 |
+| [0017](Decisions/ADR-0017-aim-cue-and-spam-gap.md) | Mash carry-over: an AIM cue and a spam gap in the timing meter | Accepted | M04/M07/M10 |
+| [0018](Decisions/ADR-0018-ai-ladder.md) | AI ladder: difficulty tiers chosen per bout from the player's level | Accepted | M07/M00 |
+| [0019](Decisions/ADR-0019-brace-tap-defence.md) | Brace: a one-tap defence on the rival's turn, through DamageInput.reduction | Accepted | M01/M05/M10 |
+| [0020](Decisions/ADR-0020-camera-keyframe-tracks-and-runtime-recorder.md) | Camera keyframe tracks, layered CameraDirector, runtime recorder | Accepted | M16/M13 |
+| [0021](Decisions/ADR-0021-hud-attention-budget.md) | HUD attention budget: a tunable per-phase budget, one headline at a time | Accepted | M10 |
+
+---
+
+## 5. Performance baseline
+
+Full targets and the dated capture log live in [Perf/BASELINE.md](Perf/BASELINE.md). The headline numbers:
+
+| Metric | Mid-tier target | Min-spec floor |
+|---|---|---|
+| Frame time, tap spam at 15 taps/s | ≤ 14 ms, **no frame > 20 ms** | no frame > 40 ms |
+| GC alloc per frame, Charge and Timing | **0 B** | 0 B |
+| Snapshot capture | ≤ 3 ms GPU, ≤ 1 ms CPU | ≤ 6 ms GPU |
+| Audio DSP CPU | ≤ 10 % | ≤ 14 % |
+| Canvas rebuilds per frame during Charge | 0 | 0 |
+| Input to visual latency | ≤ 2 frames | ≤ 2 frames |
+
+**Measure in a Development build with `SLAPMANIA_DEBUG` off, on hardware. Never in the Editor.** Capture a baseline *before* optimizing and re-capture at every milestone — without a dated series, "is it slower than last month?" is unanswerable.
+
+---
+
+## 6. Platform gotchas
+
+| Area | Editor | Android | iOS |
+|---|---|---|---|
+| Touch | Mouse simulates one finger; multi-touch needs Device Simulator | Real multi-touch; palm rejection varies by OEM | 3D/Haptic Touch can alter event timing |
+| Input event timestamps | High resolution | Driver-dependent granularity; some devices batch events | Generally reliable |
+| Frame pacing | Uncapped | Set `Application.targetFrameRate`; Optimized Frame Pacing changes timing | ProMotion 120 Hz — `targetFrameRate` must be set explicitly |
+| Thermals | None | Throttles after ~10 min; Adaptive Performance module is in the manifest | Throttles silently, no API |
+| RT readback | Always works | GLES driver quirks; MSAA RT readback undefined on some Adrenos | Metal is stricter about RT formats; no GLES fallback |
+| Graphics API | — | **Vulkan first, GLES3 fallback** — build and test both | Metal only |
+| Color space | As configured | Linear needs GLES3/Vulkan; some devices fall back | Linear fine on Metal |
+| Audio latency | Low | 50–150 ms, OEM-dependent | Low, but `AVAudioSession` category matters |
+| Silent switch | n/a | n/a | **Ambient category means silent when the ringer switch is on** |
+| Persistent data | `%userprofile%/AppData/LocalLow/<Co>/<Product>` | `/sdcard/Android/data/<pkg>/files` — `adb pull` | App container — Xcode > Devices > Download Container |
+| Log retrieval | Console | `adb logcat -s Unity:V` | Xcode Console / Console.app |
+| Quit and pause | `OnApplicationQuit` fires | May be killed without `OnApplicationQuit` | **`OnApplicationQuit` often never fires** — flush logs and saves on `OnApplicationPause(true)` |
+| Stripping | Off | IL2CPP managed stripping can remove reflection-only types | Same, plus stricter |
+| Safe area | Device Simulator only | Punch-holes, gesture bar | Notch / Dynamic Island / home indicator |
+
+### Known devices
+
+Fill this in as devices are tested.
+
+| Model | Chipset / GPU | OS | Resolution @ Hz | Observed FPS | Known issues |
+|---|---|---|---|---|---|
+| *(none tested yet)* | | | | | |
+
+---
+
+## 7. Debug tooling reference
+
+See [Modules/M13-DebugTools.md](Modules/M13-DebugTools.md) for the full spec. Quick reference:
+
+| Tool | How to open |
+|---|---|
+| Runtime overlay | Three fingers held 0.6 s (blocked during Charge/Timing), or `F1` in Editor |
+| Cheat panel | A tab in the overlay; requires `SLAPMANIA_CHEATS` |
+| Match recording dump | Cheat panel -> Data -> Dump Match JSON, or automatically on match end and on any unhandled exception |
+| Recording viewer | `Tools -> Slap Mania -> Match Recording` |
+| Timing zone editor | Inspector on any `TimingZoneLayout` asset |
+| Tuning window | `Tools -> Slap Mania -> Tuning` (live-edits in Play Mode, with copy/paste JSON so discoveries survive exiting Play Mode) |
+| Snapshot inspector | `Tools -> Slap Mania -> Snapshots` |
+| Doc status board | `Tools -> Slap Mania -> Doc Status` |
+
+---
+
+## 8. Log channel reference
+
+Channels are a `[Flags]` enum toggled per-channel in `DebugSettings`, with `PlayerPrefs` runtime overrides so QA can flip one on-device without a rebuild.
+
+| Channel | Emits | Enable when |
+|---|---|---|
+| `Flow` | FSM transitions, turn and round boundaries | Stuck states, double-advance |
+| `Input` | Accepted and rejected taps with reasons, device timestamps | Any tap-count or latency question |
+| `Power` | Per-tap fill delta, decay, diminishing factor | Power bar feels wrong |
+| `Timing` | Marker position at commit, latency compensation, zone hit | Red zone complaints |
+| `Damage` | Every intermediate term of the damage computation | "Damage feels wrong" |
+| `Health` | HP changes, death detection | Finisher and match-end bugs |
+| `AI` | AI target zone, aim jitter, scheduled tap times | AI feels unfair or robotic |
+| `Snapshot` | Capture requests, tile assignment, failures, eviction | Black or missing photos |
+| `Presentation` | Animation events, hitstop, shake, camera shot changes | Timing and feel bugs |
+| `UI` | Screen push/pop, safe area, canvas rebuild counts | Layout and navigation |
+| `Audio` | Voice allocation, stealing, drops, mixer snapshot changes, VO queue | Anything audible |
+| `Save` | Load, write, migration, corruption recovery | Save bugs |
+| `Perf` | Frame hitches, GC spikes, tier decisions | Performance investigations |
+
+`SlapLog.Trace/Info/Warn` are `[Conditional("SLAPMANIA_DEBUG")]`, so in release the compiler deletes the entire call site **including the argument expressions** — no string interpolation, no boxing, no allocation. `SlapLog.Error` is not conditional; real errors must reach the file sink in release.
+
+---
+
+## 9. Reading a match recording
+
+A recording is a JSON file with a header and a flat event array. The header is what makes it reproducible rather than merely readable:
+
+```json
+{
+  "schema": 1,
+  "appVersion": "0.1.0",
+  "gitSha": "<sha>",
+  "buildProfile": "Dev",
+  "unityVersion": "6000.3.22f1",
+  "device": "<model> / <gpu> / <os>",
+  "screen": "1080x2400 @60Hz, safeArea=...",
+  "targetFrameRate": 60,
+  "matchSeed": 918273645,
+  "configHashes": { "TimingPhaseConfig": "...", "PowerPhaseConfig": "...", "MatchRules": "..." },
+  "cheatsUsed": false,
+  "events": []
+}
+```
+
+**`configHashes` matters**: a recording taken before a balance change must not be silently compared against current behaviour.
+
+Event types: `MatchStart, RoundStart, TurnStart, ChargeBegin, Tap, TapRejected, ChargeEnd, TimingBegin, TimingStop, ZoneResolved, DamageComputed, HealthChanged, FinisherTriggered, SnapshotRequested, SnapshotCaptured, SnapshotFailed, AnimEvent, AudioEvent, StateChange, CheatUsed, FrameHitch, Exception, TurnEnd, RoundEnd, MatchEnd`.
+
+To debug a bad slap: find the `TurnStart`, read the `Tap` train against the `ChargeEnd` fill, then compare `TimingStop.deviceTime` to the marker position the recording says was resolved. The Recording Viewer renders this as a strip chart against the marker curve, which turns "that slap felt wrong" from an opinion into a diagram.
+
+`ReplayDriver` can re-feed a recording's tap timestamps and seed to reproduce a match deterministically — provided ADR-0003 (pure math) and the seeded-`IRandom` rule hold. That is the payoff for those constraints.
+
+---
+
+## 10. Device log retrieval
+
+**Android**
+```bash
+adb logcat -s Unity:V
+adb pull /sdcard/Android/data/com.dot9games.slapmania/files/SlapMania/Recordings/
+adb pull /sdcard/Android/data/com.dot9games.slapmania/files/SlapMania/Logs/
+adb shell dumpsys meminfo com.dot9games.slapmania
+```
+
+**Force a GLES3 build for the snapshot smoke test:** temporarily reorder Graphics APIs in Player Settings so GLES3 is first, build, test, revert. GLES3 is where flipped-Y, black-RT and context-loss bugs live, and Vulkan-only testing will not find them.
+
+**iOS** — Xcode > Window > Devices and Simulators > select device > Download Container, then inspect `AppData/Documents/SlapMania/`. Live logs in the Xcode console or Console.app.
+
+**Crash logs** are written by `CrashLogger` to `persistentDataPath/SlapMania/Logs/log_<utcISO>.txt`, rotated, last 5 kept, 2 MB cap each. Each file carries app version, git sha, build profile, `SystemInfo`, screen and safe area. On an exception the logger also dumps the match recording — a stack trace plus the 30 seconds of gameplay that led to it is worth ten stack traces alone.

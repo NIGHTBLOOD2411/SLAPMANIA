@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: b20fa6552f401e24497a137d904822a7
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/Scripts/VFXGraph_SetPlayRate.cs
+  uploadId: 369882

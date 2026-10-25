@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slap Mania – Wind-up</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="kit.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800;1,900&amp;family=Barlow:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#07080A}</style>
+</helmet>
+<div class="scr" style="width: 430px; height: 932px; background: #000;">
+<img src="/_blob/1db9009be971a82a346f7e9dff4e2ad6" alt="" class="fill" style="object-fit: cover; transform: scale(1.45); transform-origin: 285px 470px; filter: saturate(0.7) contrast(1.15);">
+<div class="fill" style="background: radial-gradient(circle at 285px 470px, rgba(0,0,0,0) 80px, rgba(90,0,6,0.55) 300px, rgba(20,0,2,0.85) 520px);"></div>
+<div class="abs speed" style="left: -145px; top: 40px; width: 860px; height: 860px; opacity: 0.8;"></div>
+
+<div class="abs" style="left: 0; top: 0; width: 430px; height: 70px; background: #000;"></div>
+<div class="abs" style="left: 0; top: 862px; width: 430px; height: 70px; background: #000;"></div>
+<div class="abs" style="left: 20px; top: 88px; display: flex; gap: 8px; align-items: center;">
+<span class="live" style="background: #fff; color: #0B0C0F;">Slow-mo</span><span class="n" style="font-size: 18px;">0.25×</span>
+</div>
+<div class="abs" style="left: 250px; top: 88px; width: 160px; display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
+<span class="cap mu" style="font-size: 10px;">Buck HP</span>
+<div class="bar tick" style="width: 80px; height: 8px;"><i class="fg" style="width: 64%;"></i></div>
+</div>
+
+<div class="abs" style="left: 225px; top: 410px; width: 120px; height: 120px; border-radius: 50%; border: 3px solid #FF4B53; box-shadow: 0 0 30px rgba(255,75,83,0.9), inset 0 0 24px rgba(255,75,83,0.5);"></div>
+<div class="abs" style="left: 263px; top: 448px; width: 44px; height: 44px; border-radius: 50%; background: #FF4B53; box-shadow: 0 0 40px #FF4B53;"></div>
+<div class="abs" style="left: 196px; top: 380px; width: 178px; text-align: center;"><span class="cap" style="font-size: 10px; background: #E3262F; padding: 3px 8px;">Locked</span></div>
+
+<div class="abs" style="left: 70px; top: 700px; width: 8px; height: 8px; border-radius: 4px; background: #FFE39A; box-shadow: 0 0 12px #FFE39A;"></div>
+<div class="abs" style="left: 120px; top: 660px; width: 5px; height: 5px; border-radius: 3px; background: #fff; box-shadow: 0 0 10px #fff;"></div>
+<div class="abs" style="left: 44px; top: 640px; width: 6px; height: 6px; border-radius: 3px; background: #FF4B53; box-shadow: 0 0 10px #FF4B53;"></div>
+<div class="abs" style="left: 150px; top: 720px; width: 4px; height: 4px; border-radius: 2px; background: #FFE39A; box-shadow: 0 0 8px #FFE39A;"></div>
+
+<svg class="abs" style="left: 55px; top: 560px; width: 320px; height: 200px;" viewBox="0 0 320 200" fill="none">
+<path d="M30 180 A 130 130 0 0 1 290 180" stroke="rgba(255,255,255,0.14)" stroke-width="16" stroke-linecap="butt"></path>
+<path d="M30 180 A 130 130 0 0 1 290 180" stroke="url(#pg)" stroke-width="16" stroke-dasharray="390 409" stroke-linecap="butt"></path>
+<path d="M261 97 A 130 130 0 0 1 290 180" stroke="#FF4B53" stroke-width="24" stroke-linecap="butt" opacity="0.45"></path>
+<defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E9B949"></stop><stop offset="0.7" stop-color="#FF7A2E"></stop><stop offset="1" stop-color="#FF4B53"></stop></linearGradient></defs>
+</svg>
+<div class="abs" style="left: 0; top: 650px; width: 430px; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+<span class="n" style="font-size: 72px; font-style: italic;">96</span>
+<span class="cap red" style="font-size: 11px;">Max power</span>
+</div>
+
+<a href="Impact.dc.html" class="abs" style="left: 0; top: 778px; width: 430px; display: flex; justify-content: center;"><span class="d d9 chroma" style="font-size: 64px; color: #fff;">Release!</span></a>
+<div class="abs" style="left: 20px; top: 884px; width: 390px; display: flex; justify-content: space-between; align-items: center;">
+<span class="cap mu" style="font-size: 10px;">Rage bonus +12%</span>
+<div style="display: flex; align-items: center; gap: 6px;"><svg width="20" height="14" viewBox="0 0 24 16" fill="none" stroke="#A2A8B3" stroke-width="2" stroke-linecap="round"><path d="M2 8h2M20 8h2M6 3v10M18 3v10"></path><rect x="9" y="1" width="6" height="14" rx="1.5"></rect></svg><span class="cap mu" style="font-size: 10px;">Haptic rumble</span></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":430,"height":932}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

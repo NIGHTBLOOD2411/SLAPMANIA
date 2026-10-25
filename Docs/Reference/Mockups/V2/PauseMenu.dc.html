@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slap Mania – Pause</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="kit.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800;1,900&amp;family=Barlow:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#07080A}
+.mi{height:64px;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid rgba(255,255,255,.07)}</style>
+</helmet>
+<div class="scr" style="width: 430px; height: 932px;">
+<img src="/_blob/1db9009be971a82a346f7e9dff4e2ad6" alt="" class="fill" style="object-fit: cover; filter: blur(10px) brightness(0.35) saturate(0.6);">
+<div class="fill" style="background: linear-gradient(90deg, rgba(7,8,10,0.92) 0%, rgba(7,8,10,0.55) 100%);"></div>
+<div class="fill hatch" style="opacity: 0.5;"></div>
+
+<div class="abs" style="left: 28px; top: 80px; display: flex; flex-direction: column; gap: 10px;">
+<span class="cap red" style="font-size: 12px;">Match paused</span>
+<span class="d d9" style="font-size: 76px;">Paused</span>
+</div>
+
+<div class="abs glass" style="left: 28px; top: 196px; width: 374px; height: 82px; border-radius: 4px; display: flex; align-items: center; overflow: hidden;">
+<img src="/_blob/0468ebc12b533b41d19c51629316657f" alt="" style="width: 80px; height: 80px; object-fit: cover;">
+<div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+<span class="n" style="font-size: 32px; font-style: italic;">0 <span class="mu" style="font-size: 20px;">–</span> 1</span>
+<span class="cap mu" style="font-size: 9px;">Round 2 · 0:11 left</span>
+</div>
+<img src="/_blob/089a203a6e05678cfd31b4bf1cd3dfd6" alt="" style="width: 80px; height: 80px; object-fit: cover;">
+</div>
+
+<div class="abs" style="left: 28px; top: 306px; width: 374px; display: flex; flex-direction: column;">
+<a href="Aim.dc.html" class="mi" style="background: linear-gradient(90deg, #E3262F, rgba(227,38,47,0.2)); border-bottom: 0;">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M7 4l13 8-13 8z"></path></svg>
+<span class="d" style="font-size: 28px; flex-grow: 1;">Resume</span>
+</a>
+<button class="mi" style="background: transparent; border-width: 0 0 1px 0; border-style: solid; border-color: rgba(255,255,255,0.07); text-align: left;">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A2A8B3" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17v.01"></path></svg>
+<span class="d" style="font-size: 24px; flex-grow: 1; color: #D4D7DD;">How to slap</span>
+</button>
+<a href="Settings.dc.html" class="mi">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A2A8B3" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+<span class="d" style="font-size: 24px; flex-grow: 1; color: #D4D7DD;">Settings</span>
+</a>
+<a href="Replay.dc.html" class="mi">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A2A8B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"></path></svg>
+<span class="d" style="font-size: 24px; flex-grow: 1; color: #D4D7DD;">Last replay</span>
+</a>
+<a href="Loss.dc.html" class="mi" style="border-bottom: 0;">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF4B53" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"></path></svg>
+<span class="d red" style="font-size: 24px; flex-grow: 1;">Forfeit match</span>
+<span class="cap di" style="font-size: 9px;">−18 pts</span>
+</a>
+</div>
+
+<div class="abs cap mu" style="left: 28px; top: 668px; font-size: 11px;">Quick settings</div>
+<div class="abs" style="left: 28px; top: 690px; width: 374px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+<label class="tile" style="height: 62px; padding: 0 14px; display: flex; align-items: center; gap: 10px;"><span style="flex-grow: 1; font-weight: 600;">Sound</span><input type="checkbox" class="sw" checked=""></label>
+<label class="tile" style="height: 62px; padding: 0 14px; display: flex; align-items: center; gap: 10px;"><span style="flex-grow: 1; font-weight: 600;">Haptics</span><input type="checkbox" class="sw" checked=""></label>
+<label class="tile" style="height: 62px; padding: 0 14px; display: flex; align-items: center; gap: 10px;"><span style="flex-grow: 1; font-weight: 600;">Slow-mo</span><input type="checkbox" class="sw" checked=""></label>
+<label class="tile" style="height: 62px; padding: 0 14px; display: flex; align-items: center; gap: 10px;"><span style="flex-grow: 1; font-weight: 600;">Commentary</span><input type="checkbox" class="sw"></label>
+</div>
+<div class="abs" style="left: 28px; top: 862px; width: 374px; display: flex; gap: 8px; align-items: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#737985" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><span style="font-size: 12px; color: #737985;">Ranked pause limit · 45s remaining</span></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":430,"height":932}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

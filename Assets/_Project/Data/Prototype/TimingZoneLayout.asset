@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 295ab7baeb2fbb547a073c8ca14d8fe8, type: 3}
+  m_Name: TimingZoneLayout
+  m_EditorClassIdentifier: SlapMania.Data::SlapMania.Data.TimingZoneLayout
+  bands:
+  - zone: 0
+    start: 0
+    end: 0.12
+    multiplier: 0.5
+    colour: {r: 0.3, g: 0.5, b: 0.7, a: 1}
+  - zone: 1
+    start: 0.12
+    end: 0.3
+    multiplier: 0.85
+    colour: {r: 0.9, g: 0.85, b: 0.2, a: 1}
+  - zone: 2
+    start: 0.3
+    end: 0.42
+    multiplier: 1.4
+    colour: {r: 1, g: 0.6, b: 0.15, a: 1}
+  - zone: 3
+    start: 0.42
+    end: 0.47
+    multiplier: 2
+    colour: {r: 1, g: 0.35, b: 0.15, a: 1}
+  - zone: 4
+    start: 0.47
+    end: 0.53
+    multiplier: 3
+    colour: {r: 1, g: 0.1, b: 0.1, a: 1}
+  - zone: 3
+    start: 0.53
+    end: 0.58
+    multiplier: 2
+    colour: {r: 1, g: 0.35, b: 0.15, a: 1}
+  - zone: 2
+    start: 0.58
+    end: 0.7
+    multiplier: 1.4
+    colour: {r: 1, g: 0.6, b: 0.15, a: 1}
+  - zone: 1
+    start: 0.7
+    end: 0.88
+    multiplier: 0.85
+    colour: {r: 0.9, g: 0.85, b: 0.2, a: 1}
+  - zone: 0
+    start: 0.88
+    end: 1
+    multiplier: 0.5
+    colour: {r: 0.3, g: 0.5, b: 0.7, a: 1}

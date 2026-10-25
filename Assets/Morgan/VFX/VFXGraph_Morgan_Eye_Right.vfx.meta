@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c587f17d88f1c1a4dada9187e3870f5a
+VisualEffectImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/VFXGraph_Morgan_Eye_Right.vfx
+  uploadId: 369882

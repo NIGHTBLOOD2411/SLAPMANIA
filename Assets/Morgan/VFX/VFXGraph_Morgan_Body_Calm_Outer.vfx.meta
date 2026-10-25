@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 85f4683cfae3acc49824e485602cfc28
+VisualEffectImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/VFXGraph_Morgan_Body_Calm_Outer.vfx
+  uploadId: 369882

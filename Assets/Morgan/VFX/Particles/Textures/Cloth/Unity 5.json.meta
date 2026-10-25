@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3c47f1cc008fc834891308387c001fb8
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168622
+  packageName: 'The Heretic: VFX Character'
+  packageVersion: 1.0
+  assetPath: Assets/Morgan/VFX/Particles/Textures/Cloth/Unity 5.json
+  uploadId: 369882

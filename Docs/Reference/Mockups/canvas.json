@@ -1,0 +1,526 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Aim.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "C5 Your Turn · Aim & Timing",
+      "w": 430,
+      "x": 2040,
+      "y": 2600
+    },
+    "Brace.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "D2 Opponent Turn · Brace",
+      "w": 430,
+      "x": 510,
+      "y": 3900
+    },
+    "Career.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "A4 Road to Champion",
+      "w": 430,
+      "x": 1530,
+      "y": 0
+    },
+    "Challenges.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "B3 Challenges",
+      "w": 430,
+      "x": 1020,
+      "y": 1300
+    },
+    "Charge.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "C6 Wind-up · Power Charge",
+      "w": 430,
+      "x": 2550,
+      "y": 2600
+    },
+    "Countdown.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "09 Round Countdown",
+      "w": 430,
+      "x": 1020,
+      "y": 1300
+    },
+    "Defeat.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "16 Defeat",
+      "w": 430,
+      "x": 1020,
+      "y": 2600
+    },
+    "Defend.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "12 Defend / Brace",
+      "w": 430,
+      "x": 2550,
+      "y": 1300
+    },
+    "FighterCard.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "A6 Fighter Card & Upgrade",
+      "w": 430,
+      "x": 2550,
+      "y": 0
+    },
+    "FighterSelect.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "04 Fighter Select",
+      "w": 430,
+      "x": 1530,
+      "y": 0
+    },
+    "Home.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "03 Home / Main Menu",
+      "w": 430,
+      "x": 1020,
+      "y": 0
+    },
+    "Impact.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "D1 SMASH Impact",
+      "w": 430,
+      "x": 0,
+      "y": 3900
+    },
+    "Kit.dc.html": {
+      "h": 720,
+      "title": "UI Kit V2",
+      "w": 1460,
+      "x": 2040,
+      "y": 5200
+    },
+    "Knockout.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "D3 Knockout",
+      "w": 430,
+      "x": 1020,
+      "y": 3900
+    },
+    "Leaderboard.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "06 Leaderboard",
+      "w": 430,
+      "x": 2550,
+      "y": 0
+    },
+    "Loader.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "A2 Loading",
+      "w": 430,
+      "x": 510,
+      "y": 0
+    },
+    "Loading.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "02 Loading",
+      "w": 430,
+      "x": 510,
+      "y": 0
+    },
+    "Loss.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "E3 Defeat & Coaching",
+      "w": 430,
+      "x": 1020,
+      "y": 5200
+    },
+    "Main.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "01 Splash",
+      "w": 430,
+      "x": 0,
+      "y": 0
+    },
+    "MainMenu.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "A3 Main Menu · Play Hub",
+      "w": 430,
+      "x": 1020,
+      "y": 0
+    },
+    "Matchmaking.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "07 Matchmaking",
+      "w": 430,
+      "x": 0,
+      "y": 1300
+    },
+    "PackOpen.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "B2 Pack Walkout Reveal",
+      "w": 430,
+      "x": 510,
+      "y": 1300
+    },
+    "Pause.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "13 Pause",
+      "w": 430,
+      "x": 3060,
+      "y": 1300
+    },
+    "PauseMenu.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "D5 Pause",
+      "w": 430,
+      "x": 2040,
+      "y": 3900
+    },
+    "Profile.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "B5 Player Profile",
+      "w": 430,
+      "x": 2040,
+      "y": 1300
+    },
+    "RankUp.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "E4 Division Promotion",
+      "w": 430,
+      "x": 1530,
+      "y": 5200
+    },
+    "Rankings.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "B4 Division Rankings",
+      "w": 430,
+      "x": 1530,
+      "y": 1300
+    },
+    "Ready.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "C4 Round Countdown",
+      "w": 430,
+      "x": 1530,
+      "y": 2600
+    },
+    "Replay.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "D4 Instant Replay · Damage Cam",
+      "w": 430,
+      "x": 1530,
+      "y": 3900
+    },
+    "Roster.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "A5 Fighter Roster",
+      "w": 430,
+      "x": 2040,
+      "y": 0
+    },
+    "RoundEnd.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "E1 Round Scorecard",
+      "w": 430,
+      "x": 0,
+      "y": 5200
+    },
+    "RoundKO.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "14 Round Result / KO",
+      "w": 430,
+      "x": 0,
+      "y": 2600
+    },
+    "Search.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "C1 Finding Opponent",
+      "w": 430,
+      "x": 0,
+      "y": 2600
+    },
+    "SeasonPass.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "A7 Season Pass",
+      "w": 430,
+      "x": 3060,
+      "y": 0
+    },
+    "Settings.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "B6 Settings",
+      "w": 430,
+      "x": 2550,
+      "y": 1300
+    },
+    "Shop.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "05 Shop",
+      "w": 430,
+      "x": 2040,
+      "y": 0
+    },
+    "SlapTurn.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "10 Your Slap (Power Meter)",
+      "w": 430,
+      "x": 1530,
+      "y": 1300
+    },
+    "SmashHit.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "11 Smash Hit + Damage Cam",
+      "w": 430,
+      "x": 2040,
+      "y": 1300
+    },
+    "Store.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "B1 Store · Packs",
+      "w": 430,
+      "x": 0,
+      "y": 1300
+    },
+    "StyleGuide.dc.html": {
+      "h": 800,
+      "page": "v1",
+      "title": "UI Kit / Style Guide",
+      "w": 1460,
+      "x": 1530,
+      "y": 2600
+    },
+    "TaleOfTape.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "C3 Tale of the Tape",
+      "w": 430,
+      "x": 1020,
+      "y": 2600
+    },
+    "Title.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "A1 Title / Press Start",
+      "w": 430,
+      "x": 0,
+      "y": 0
+    },
+    "Victory.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "15 Victory",
+      "w": 430,
+      "x": 510,
+      "y": 2600
+    },
+    "VsIntro.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "page": "v1",
+      "title": "08 VS Intro",
+      "w": 430,
+      "x": 510,
+      "y": 1300
+    },
+    "Walkout.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "C2 Main Event Walkout",
+      "w": 430,
+      "x": 510,
+      "y": 2600
+    },
+    "Win.dc.html": {
+      "h": 932,
+      "is_interactive": true,
+      "title": "E2 Victory & Rewards",
+      "w": 430,
+      "x": 510,
+      "y": 5200
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-25T19:05:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "page": "v2",
+    "view": "canvas"
+  },
+  "notes": {
+    "row1": {
+      "kind": "title1",
+      "maxW": 2980,
+      "page": "v1",
+      "text": "01 · Boot & Menus",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "row2": {
+      "kind": "title1",
+      "maxW": 3490,
+      "page": "v1",
+      "text": "02 · Match Flow",
+      "w": 240,
+      "x": 0,
+      "y": 1000
+    },
+    "row3": {
+      "kind": "title1",
+      "maxW": 2990,
+      "page": "v1",
+      "text": "03 · Results & UI Kit",
+      "w": 240,
+      "x": 0,
+      "y": 2300
+    },
+    "v2a": {
+      "kind": "title1",
+      "maxW": 3490,
+      "text": "A · Front End — Title, Menus & Fighters",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "v2b": {
+      "kind": "title1",
+      "maxW": 2980,
+      "text": "B · Store, Progression & Profile",
+      "w": 240,
+      "x": 0,
+      "y": 1000
+    },
+    "v2c": {
+      "kind": "title1",
+      "maxW": 2980,
+      "text": "C · Match Intro & Your Turn",
+      "w": 240,
+      "x": 0,
+      "y": 2300
+    },
+    "v2d": {
+      "kind": "title1",
+      "maxW": 2470,
+      "text": "D · Impact, Replay & Pause",
+      "w": 240,
+      "x": 0,
+      "y": 3600
+    },
+    "v2e": {
+      "kind": "title1",
+      "maxW": 3500,
+      "text": "E · Results & UI Kit",
+      "w": 240,
+      "x": 0,
+      "y": 4900
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Loading.dc.html",
+    "Home.dc.html",
+    "FighterSelect.dc.html",
+    "Shop.dc.html",
+    "Leaderboard.dc.html",
+    "Matchmaking.dc.html",
+    "VsIntro.dc.html",
+    "Countdown.dc.html",
+    "SlapTurn.dc.html",
+    "SmashHit.dc.html",
+    "Defend.dc.html",
+    "Pause.dc.html",
+    "RoundKO.dc.html",
+    "Victory.dc.html",
+    "Defeat.dc.html",
+    "StyleGuide.dc.html",
+    "Title.dc.html",
+    "Loader.dc.html",
+    "MainMenu.dc.html",
+    "Career.dc.html",
+    "Roster.dc.html",
+    "FighterCard.dc.html",
+    "SeasonPass.dc.html",
+    "Store.dc.html",
+    "PackOpen.dc.html",
+    "Challenges.dc.html",
+    "Rankings.dc.html",
+    "Profile.dc.html",
+    "Settings.dc.html",
+    "Search.dc.html",
+    "Walkout.dc.html",
+    "TaleOfTape.dc.html",
+    "Ready.dc.html",
+    "Aim.dc.html",
+    "Charge.dc.html",
+    "Impact.dc.html",
+    "Brace.dc.html",
+    "Knockout.dc.html",
+    "Replay.dc.html",
+    "PauseMenu.dc.html",
+    "RoundEnd.dc.html",
+    "Win.dc.html",
+    "Loss.dc.html",
+    "RankUp.dc.html",
+    "Kit.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "v2",
+      "name": "V2 · AAA Upgrade"
+    },
+    {
+      "id": "v1",
+      "name": "V1 · First Pass"
+    }
+  ],
+  "title": "Slap Mania Game UI"
+}

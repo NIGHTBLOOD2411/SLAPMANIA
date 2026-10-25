@@ -1,0 +1,16 @@
+{
+    "name": "SlapMania.Core",
+    "rootNamespace": "SlapMania.Core",
+    "references": [
+        "SlapMania.Logging"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,21 @@
+{
+    "name": "SlapMania.UI",
+    "rootNamespace": "SlapMania.UI",
+    "references": [
+        "SlapMania.Core",
+        "SlapMania.Data",
+        "SlapMania.Gameplay",
+        "SlapMania.Logging",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
