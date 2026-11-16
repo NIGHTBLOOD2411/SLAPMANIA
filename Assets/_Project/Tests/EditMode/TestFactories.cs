@@ -84,6 +84,7 @@ namespace SlapMania.Tests.EditMode
             b.maxTurns = maxTurns;
             b.finisherEnabled = true;
             b.matchSeed = 12345;
+            b.slapshotHoldMs = 0; // timing tests measure the FSM without the slapshot pause; SlapshotPacing opts in
             return b;
         }
 

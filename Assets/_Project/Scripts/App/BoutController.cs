@@ -93,6 +93,14 @@ namespace SlapMania.App
             SlapLog.Info(LogChannel.Match, "Bout seed " + seed + ", ladder level " + _ladderLevel +
                          ", AI tier " + tier + " (" + opponent.name + ")");
 
+            string opponentName = opponent.displayName;
+            string playerName = null;
+            if (SpawnChampions(cfg.roster, rng, out var champion, out var rival))
+            {
+                opponentName = rival.ShownName;
+                playerName = champion.ShownName;
+            }
+
             _playerInput = new InputSystemTapSource(TapEvent.SourcePlayerTouch);
             _director.BindPlayerSource(_playerInput);
             _director.BindOpponent(opponent);
@@ -112,7 +120,7 @@ namespace SlapMania.App
                 _hud.Bind(_director, _stats, cfg, cam,
                           _playerView != null ? _playerView.HeadAnchor : null,
                           _opponentView != null ? _opponentView.HeadAnchor : null,
-                          opponent.displayName);
+                          opponentName, playerName);
                 _hud.RematchRequested += OnRematchRequested;
                 _hud.MenuRequested += OnMenuRequested;
             }
@@ -125,6 +133,26 @@ namespace SlapMania.App
             _director.StartBout();
             _boutStartedAt = _director.Now;
             _running = true;
+        }
+
+        /// The champions (M08, ADR-0022): the player's Roster pick (the first when none or an
+        /// unknown id) and a seeded opponent that is never the same champion unless the roster
+        /// has one. Their prefabs replace the scene's fighters and their stats bind to the FSM.
+        /// Rolled after the AI tier so a pinned matchSeed keeps its tier (S-094).
+        private bool SpawnChampions(ChampionRoster roster, IRandom rng, out ChampionDefinition player, out ChampionDefinition rival)
+        {
+            player = rival = null;
+            if (roster == null || roster.Count == 0) return false;
+            int pi = GameRoot.Instance != null ? roster.IndexOf(GameRoot.Instance.SelectedChampionId) : -1;
+            if (pi < 0) pi = 0;
+            int oi = ChampionRules.PickOpponent(roster.Count, pi, rng);
+            player = roster.Get(pi);
+            rival = roster.Get(oi);
+            _playerView = ChampionSpawner.Spawn(_playerView, player, tintAsRival: false, roster.fighterHumanScale);
+            _opponentView = ChampionSpawner.Spawn(_opponentView, rival, tintAsRival: pi == oi, roster.fighterHumanScale);
+            _director.BindChampions(player.stats, rival.stats);
+            SlapLog.Info(LogChannel.Match, "Champions: " + player.id + " vs " + rival.id);
+            return true;
         }
 
         private void Update()
@@ -284,16 +312,20 @@ namespace SlapMania.App
         private void OnChargeEnd(PowerResult p) { _slapPower = p; PlayCameraCue(CameraCue.ChargeEnd); }
         private void OnTimingEnd(TimingResult t) { _slapTiming = t; PlayCameraCue(CameraCue.TimingEnd); }
 
-        // Every landed slap, the finisher included: photograph the defender (M09), and make it
-        // D4 Instant Replay's shot (the pause menu's "Last replay", or the K.O.'s replay).
+        // Every landed slap, the finisher included: photograph the defender with the palm on
+        // their cheek (M09), and make it D4 Instant Replay's shot (the pause menu's "Last
+        // replay", or the K.O.'s replay). A powerful one is also a slapshot: the Polaroid shows
+        // while the director holds the Snapshot state (the K.O. has its own screen instead).
         private void OnSnapshotRequested(DamageResult d)
         {
             var t = _director.CurrentTurn;
             var def = ViewOf(t.Defender);
             var atk = ViewOf(t.Attacker);
             if (_snapshots == null || def == null || atk == null) return;
-            if (!_snapshots.Capture(def.HeadAnchor, atk.transform.position,
-                                    new SlapShot(t.SlapIndex, t.Defender, d.FinalDamage, d.IsLethal))) return;
+            bool slapshot = _director.LastWasSlapshot;
+            if (!_snapshots.Capture(def.HeadAnchor, atk.transform.position, atk.StrikingHand,
+                                    new SlapShot(t.SlapIndex, t.Defender, d.FinalDamage, d.IsLethal, slapshot))) return;
+            if (slapshot && !d.IsLethal && _hud != null) _hud.ShowSlapshot(_snapshots.LatestHero, t.Defender, d.FinalDamage);
             if (_screens == null) return;
             var r = _screens.Replay;
             r.Photo = _snapshots.LatestHero;

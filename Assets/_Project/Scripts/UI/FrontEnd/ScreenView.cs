@@ -113,6 +113,15 @@ namespace SlapMania.UI.FrontEnd
             OnButton(buttonName, (VisualElement)e.currentTarget);
         }
 
+        /// Points an already-wired `nav-` link somewhere else, for a screen whose mockup button
+        /// means something different once it has live data (Roster's UNLOCK becomes PLAY).
+        protected void Relink(VisualElement link, ScreenId target)
+        {
+            if (link == null) return;
+            link.UnregisterCallback<ClickEvent, ScreenId>(OnLinkClicked);
+            link.RegisterCallback<ClickEvent, ScreenId>(OnLinkClicked, target);
+        }
+
         /// A link was tapped. Default: navigate. Override to intercept (e.g. confirm first).
         protected virtual void OnLink(ScreenId target) => Manager.Navigate(target);
 

@@ -28,6 +28,8 @@ namespace SlapMania.App
             var root = GameRoot.Instance;
             if (_screens == null || root == null) return;
             if (root.Config != null && root.Config.uiMotion != null) _screens.Motion = root.Config.uiMotion;
+            if (root.Config != null) _screens.Roster = root.Config.roster;
+            _screens.SelectedChampionId = root.SelectedChampionId;
             var page = root.Config != null ? root.Config.frontEndPage : FrontEndPage.V2;
             if (root.PendingFrontEndScreen != ScreenId.None)
             {
@@ -42,7 +44,11 @@ namespace SlapMania.App
 
         private void OnEnable()
         {
-            if (_screens != null) _screens.MatchRequested += OnMatchRequested;
+            if (_screens != null)
+            {
+                _screens.MatchRequested += OnMatchRequested;
+                _screens.ChampionSelected += OnChampionSelected;
+            }
             // Android's back button arrives as Escape in the Input System.
             _back = new InputAction("FrontEndBack", InputActionType.Button);
             _back.AddBinding("<Keyboard>/escape");
@@ -53,7 +59,11 @@ namespace SlapMania.App
 
         private void OnDisable()
         {
-            if (_screens != null) _screens.MatchRequested -= OnMatchRequested;
+            if (_screens != null)
+            {
+                _screens.MatchRequested -= OnMatchRequested;
+                _screens.ChampionSelected -= OnChampionSelected;
+            }
             if (_back == null) return;
             _back.performed -= OnBack;
             _back.Dispose();
@@ -63,6 +73,12 @@ namespace SlapMania.App
         private void OnBack(InputAction.CallbackContext ctx)
         {
             if (_screens != null) _screens.Back();
+        }
+
+        private void OnChampionSelected(string id)
+        {
+            SlapLog.Info(LogChannel.UI, "Champion picked: " + id);
+            if (GameRoot.Instance != null) GameRoot.Instance.SelectedChampionId = id;
         }
 
         private void OnMatchRequested(ScreenId entry)

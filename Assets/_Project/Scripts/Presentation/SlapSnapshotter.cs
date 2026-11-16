@@ -39,9 +39,10 @@ namespace SlapMania.Presentation
         // Framing: the face from the attacker's side of the line, turned off-axis so the cheek
         // and the incoming hand read. Metres and degrees.
         private const float Distance = 1.05f;
-        private const float SideDegrees = 35f;
+        private const float SideDegrees = 40f;
         private const float FieldOfView = 36f;
-        private const float Lift = 0.05f;
+        private const float Lift = 0.26f;         // above the incoming arm: at face height a thick forearm fills the frame (S-106)
+        private const float HandPull = 0.3f;   // share of the way from the face to the palm the camera aims
 
         /// `scene` is the gameplay camera: the photo copies its clear and culling settings.
         public SlapSnapshotter(Camera scene) { _scene = scene; }
@@ -53,9 +54,10 @@ namespace SlapMania.Presentation
         public Texture LatestHero => _hero;
         public SlapShot LatestShot => _latest;
 
-        /// Photograph `defender` as it takes `shot`. Returns false (and logs) when there is
-        /// nothing to point at.
-        public bool Capture(Transform defenderHead, Vector3 attackerPosition, in SlapShot shot)
+        /// Photograph `defender` as it takes `shot`. `strikingHand` (may be null) is the attacker's
+        /// slapping hand: the camera swings to that side so the palm on the cheek is in the photo.
+        /// Returns false (and logs) when there is nothing to point at.
+        public bool Capture(Transform defenderHead, Vector3 attackerPosition, Transform strikingHand, in SlapShot shot)
         {
             if (defenderHead == null) { SlapLog.Warn(LogChannel.Snapshot, "No defender head: snapshot skipped."); return false; }
             int slot = _count < Capacity ? _count++ : SnapshotPicker.SlotToEvict(_shots, _count);
@@ -66,14 +68,14 @@ namespace SlapMania.Presentation
                 _photos[slot].Create();
             }
             _shots[slot] = shot;
-            Render(defenderHead, attackerPosition, _photos[slot]);
+            Render(defenderHead, attackerPosition, strikingHand, _photos[slot]);
             if (_hero == null)
             {
                 _hero = new RenderTexture(HeroWidth, HeroHeight, 24, GraphicsFormat.R8G8B8A8_SRGB)
                         { name = "SlapSnapshotHero", antiAliasing = 1 };
                 _hero.Create();
             }
-            Render(defenderHead, attackerPosition, _hero);
+            Render(defenderHead, attackerPosition, strikingHand, _hero);
             _latest = shot;
             return true;
         }
@@ -93,14 +95,24 @@ namespace SlapMania.Presentation
             return n;
         }
 
-        private void Render(Transform head, Vector3 attackerPosition, RenderTexture target)
+        private void Render(Transform head, Vector3 attackerPosition, Transform hand, RenderTexture target)
         {
             EnsureCamera();
             Vector3 focus = head.position + Vector3.down * 0.04f;
             Vector3 toAttacker = attackerPosition - head.position;
             toAttacker.y = 0f;
             if (toAttacker.sqrMagnitude < 1e-6f) toAttacker = Vector3.forward;
-            Vector3 dir = Quaternion.AngleAxis(SideDegrees, Vector3.up) * toAttacker.normalized;
+            toAttacker.Normalize();
+            // Swing to the side the palm lands on, and aim a little toward it, so the photo is
+            // the slapped face with the hand on the cheek - not the back of the attacker's arm.
+            float side = 1f;
+            if (hand != null)
+            {
+                Vector3 right = Vector3.Cross(Vector3.up, toAttacker);
+                side = Vector3.Dot(hand.position - head.position, right) >= 0f ? 1f : -1f;
+                focus = Vector3.Lerp(focus, hand.position, HandPull);
+            }
+            Vector3 dir = Quaternion.AngleAxis(SideDegrees * side, Vector3.up) * toAttacker;
             _cam.transform.position = focus + dir * Distance + Vector3.up * Lift;
             _cam.transform.LookAt(focus);
             _cam.targetTexture = target;

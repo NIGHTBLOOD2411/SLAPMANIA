@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using SlapMania.Core;
 using SlapMania.Data;
@@ -43,16 +44,18 @@ namespace SlapMania.UI
 
         private readonly HudContext _ctx = new HudContext();
         private MatchDirector _director;
+        private HudSlapshot _slapshot;   // built in code at Bind (HudSlapshot.Create)
         // One headline at a time (POLISH §9): a screen whose show waits for D1's headline to leave.
         private HudView _deferred;
         private double _deferUntil;
 
         public HudContext Context => _ctx;
 
-        /// `opponentName`: this bout's AI tier name (M07 ladder); null or empty keeps the placeholder.
-        /// Views read names at Bind, so it is set here, not later.
+        /// `opponentName` / `playerName`: this bout's champions (or the AI tier name); null or empty
+        /// keeps the placeholder. Views read names at Bind, so they are set here, not later.
         public void Bind(MatchDirector director, SlapStats stats, GameConfig config, Camera cam,
-                         Transform playerHead, Transform opponentHead, string opponentName = null)
+                         Transform playerHead, Transform opponentHead, string opponentName = null,
+                         string playerName = null)
         {
             Unsubscribe();
             _director = director;
@@ -69,13 +72,43 @@ namespace SlapMania.UI
             _ctx.Camera = cam;
             _ctx.PlayerHead = playerHead;
             _ctx.OpponentHead = opponentHead;
-            _ctx.PlayerName = _playerName;
+            _ctx.PlayerName = string.IsNullOrEmpty(playerName) ? _playerName : playerName;
             _ctx.OpponentName = string.IsNullOrEmpty(opponentName) ? _opponentName : opponentName;
             _ctx.HasResult = false;
 
+            if (_slapshot == null) _slapshot = CreateSlapshotView();
             BindView(_scorebug); BindView(_intro); BindView(_charge); BindView(_timing);
             BindView(_impact); BindView(_opponentTurn); BindView(_knockout); BindView(_result);
+            BindView(_slapshot);
             Subscribe();
+        }
+
+        // The Polaroid sits above every other HUD screen, in the HUD's own fonts.
+        private HudSlapshot CreateSlapshotView()
+        {
+            TMP_FontAsset display = null, body = null;
+            foreach (var t in GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (t.font == null) continue;
+                string n = t.font.name;
+                if (display == null && n.Contains("BlackItalic")) display = t.font;
+                if (body == null && n.Contains("Condensed-Bold")) body = t.font;
+            }
+            return HudSlapshot.Create((RectTransform)transform, display, body != null ? body : display);
+        }
+
+        /// A slapshot (M09): the Polaroid of `defender` taking a `damage` slap, from `photo`. The
+        /// caption's zone and power come from this slap's results; the director's Snapshot hold
+        /// (BoutConfig.slapshotHoldMs) is how long it stays.
+        public void ShowSlapshot(Texture photo, FighterSlot defender, int damage)
+        {
+            if (_slapshot == null || _director == null) return;
+            var tm = _ctx.LastTiming;
+            string detail = tm.Zone.ToString().ToUpperInvariant() + "  x" + tm.Multiplier.ToString("0.0") +
+                            "  ·  " + Mathf.RoundToInt(_ctx.LastPower.RawPower * 100f) + "% POWER";
+            float hold = _ctx.Config != null ? (_ctx.Config.bout.snapshotMs + _ctx.Config.bout.slapshotHoldMs) * 0.001f - 0.3f : 1.15f;
+            _slapshot.Play(photo, _ctx.NameOf(defender).ToUpperInvariant(), damage, detail,
+                           _director.CurrentTurn.RoundIndex + 1, hold);
         }
 
         public void SetPortraits(Texture player, Texture opponent)
@@ -157,6 +190,7 @@ namespace SlapMania.UI
             // The new turn owns the screen: the last slap's headline leaves now, and the next
             // headline (INCOMING!) waits for it rather than stacking on it.
             float wait = _impact != null ? _impact.Yield() : 0f;
+            if (_slapshot != null) _slapshot.Yield();
             if (t.Attacker == FighterSlot.Player)
             {
                 _deferred = null;
@@ -232,6 +266,7 @@ namespace SlapMania.UI
         private void OnFinisherStart(DamageResult d)
         {
             Hide(_scorebug);
+            Hide(_slapshot);   // D3 K.O. owns the screen
             if (_knockout != null) _knockout.Play(_director.CurrentTurn.Attacker);
         }
 
@@ -267,6 +302,7 @@ namespace SlapMania.UI
         {
             Hide(_scorebug);
             Hide(_impact);
+            Hide(_slapshot);
             if (_result != null && _ctx.HasResult) _result.Play(_ctx.Result);
         }
 

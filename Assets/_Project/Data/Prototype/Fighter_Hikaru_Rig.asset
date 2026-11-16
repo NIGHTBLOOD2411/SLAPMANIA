@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da7645d7296bda04083e74b33de108c1, type: 3}
+  m_Name: Fighter_Hikaru_Rig
+  m_EditorClassIdentifier: SlapMania.Data::SlapMania.Data.FighterRigProfile
+  idleState: Idle
+  chargeState: Charge
+  hitState: Hit
+  blockState: Block
+  victoryState: Victory
+  crossFadeMs: 120
+  attacks:
+  - state: Slap_Right
+    contactMs: 453
+    rightHand: 1
+  - state: Slap_Left
+    contactMs: 453
+    rightHand: 0
+  maxWindupSpeedup: 1.35
+  chargeCrossFadeMs: 350
+  lookWeight: 0.75
+  lookBodyWeight: 0.15
+  lookHeadWeight: 0.9
+  lookClamp: 0.5
+  ikBlendInMs: 170
+  ikHoldMs: 90
+  ikBlendOutMs: 240
+  ikPositionWeight: 1
+  ikRotationWeight: 0.45
+  handRotationOffset: {x: 0, y: 0, z: 90}
+  strikeOffset: {x: 0.11, y: -0.03}
+  cheekSideOffset: 0.08
+  maxStrikeLeanDeg: 32
+  openHandWeight: 1
+  springFrequency: 5.5
+  springDamping: 0.35
+  impulseDegPerSecond: 950
+  maxAngle: 55
+  twistShare: 0.55
+  spineWeight: 0.08
+  chestWeight: 0.18
+  neckWeight: 0.3
+  headWeight: 0.7
+  physicsWeight: 1
+  torsoHz: 7
+  neckHeadHz: 4.5
+  upperArmHz: 5
+  forearmHz: 4
+  handHz: 3.2
+  dampingRatio: 0.45
+  maxDeviationDeg: 50
+  hitImpulseDegPerSecond: 1100
+  hitTwistShare: 0.6
+  chargeTrembleDeg: 2.5
+  koVelocity: 3.2
+  koUpVelocity: 1.1
+  koHeadExtra: 2.6

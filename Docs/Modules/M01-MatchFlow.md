@@ -2,7 +2,7 @@
 module: M01-MatchFlow
 status: InProgress
 owner: shobhit
-last-verified: 2026-10-23
+last-verified: 2026-11-07
 verified-against: (pre-git)
 asmdef: SlapMania.Gameplay
 ---
@@ -103,6 +103,10 @@ Pause is **orthogonal to the state**, not a state: `CurrentState` keeps naming t
 **Consumed by:** every module.
 **Stability:** the state list is stable; transition timing will churn until the vertical slice.
 
+### Champions ([ADR-0022](../Decisions/ADR-0022-champion-roster-and-stats.md))
+
+`BindChampions(in ChampionStats player, in ChampionStats opponent)` - call before `StartBout`. Stamina sets each `HealthTracker`'s max HP; every Resolve (and the brace re-resolve) passes `DamageInput.StatScale` = attacker power x defender chin. Neutral stats (75) are a scale of exactly 1.
+
 ## 4. Configuration
 
 Asset: `Assets/_Project/Data/Balance/BoutConfig.asset`
@@ -122,6 +126,8 @@ Asset: `Assets/_Project/Data/Balance/BoutConfig.asset`
 | `finisherMs` | int ms | **2500** | 1500 – 4000 | Finisher before BoutEnd |
 | `finisherSnapshotMs` | int ms | **100** | 50 – 200 | Added to the finisher |
 | `turnTransitionMs` | int ms | **300** | 0 – 1500 | TurnEnd breathing room. Target **800** once the camera swaps sides (§10) |
+| `slapshotMinDamage` | int | **30** | 15 – 60 | Damage bar `SlapshotRule` uses to call a slap powerful (M09 slapshot) |
+| `slapshotHoldMs` | int ms | **1400** | 800 – 2000 | Added to `snapshotMs` when `LastWasSlapshot`: the Polaroid's time on screen. 0 = no pause |
 
 The pacing fields (landed 2026-09-26) replaced `private const` durations inside `MatchDirector` with identical defaults (`DefaultPacing_MatchesThePreviousConstants`). They are authored in ms (R8) and read on every tick, so Play Mode edits apply on the next state entry. Negative values behave as 0 and cannot wedge the FSM (`NegativePacing_BehavesAsZero_NoHang`).
 
@@ -235,6 +241,8 @@ BoutIntro ──► TurnStart ──► Charge ──► Timing ──► Resolv
 
 | Date | Commit | Change |
 |---|---|---|
+| 2026-11-07 | (pre-git) | **Slapshot hold (M09).** On leaving Hitstop the director evaluates Core `SlapshotRule.Qualifies(damage, timing, power, slapshotMinDamage)` into `LastWasSlapshot` (set before `SnapshotRequested` / the finisher path). A non-lethal slapshot holds the Snapshot state `snapshotMs + slapshotHoldMs` so the Polaroid can be seen before TurnEnd. New `BoutConfig` fields `slapshotMinDamage` 30, `slapshotHoldMs` 1400 (§4). `TestFactories.Bout` sets the hold to 0 so existing timing tests are unchanged; new `MatchPacingTests.SnapshotState_LastsSnapshotMs_PlusHoldOnlyForASlapshot` (3 cases, pinned to `LastWasSlapshot` so it holds for any rule) and `NegativeSlapshotHold_NoHang` |
+| 2026-10-25 | (pre-git) | **Champion stats ([ADR-0022](../Decisions/ADR-0022-champion-roster-and-stats.md)).** `MatchDirector.BindChampions(player, opponent)` (before `StartBout`; neutral without it). `StartBout` inits each fighter's HP from `ChampionRules.MaxHp(startingHp, stamina, BoutConfig.staminaHpPerPoint)`; both damage inputs carry `ChampionRules.SlapScale` (attacker PWR x defender CHN). New `BoutConfig.staminaHpPerPoint` (0.5). |
 | 2026-10-23 | (pre-git) | **Brace window ([ADR-0019](../Decisions/ADR-0019-brace-tap-defence.md)).** On a rival `Windup`, `MatchDirector` listens to the player's taps (cached handler, R5). It judges the first one as Windup ends, re-resolves `_lastDamage` with the reduction before `Impact`, and raises the new `MatchSignals.BraceResolved` before `ImpactFrame`. New `LastBrace` and `IsBraceWindowOpen`. `Forfeit` closes the window. No new `MatchState` |
 | 2026-10-23 | (pre-git) | `BoutController` (App) records each slap's `ChargeEnd`/`TimingEnd` results (struct copies, R5), fills D4 Instant Replay's `ReplayShot` on every snapshot, and after a K.O. routes K.O. -> D4 -> E2/E3 (M09/M10). No FSM change |
 | 2026-10-23 | (pre-git) | **Mash carry-over, fresh seeds, AI ladder, slap gallery.** `MatchDirector.EnterTiming` passes `PowerMeter.LastTapTime` to `TimingMeter.Begin`, and the meter's AIM cue and `EarliestCommitElapsed` to the AI (M04/M07, DEBUG S-093, [ADR-0017](../Decisions/ADR-0017-aim-cue-and-spam-gap.md)). No new `MatchState`: the cue lives inside `Timing`. `BoutController` (App): `BoutConfig.matchSeed` 0 = a fresh seed per bout, logged (S-094). The opponent is rolled from the AI ladder near `GameRoot.AiLadderLevel`, and the level moves at `BoutEnd` (S-095, [ADR-0018](../Decisions/ADR-0018-ai-ladder.md)). Every `SnapshotRequested`/`FinisherSnapshotRequested` is photographed by `SlapSnapshotter`, and the loser's gallery goes to `HudContext` at `BoutEnd` (M09, [ADR-0016](../Decisions/ADR-0016-slap-gallery-pre-atlas-capture.md)). Test: `MatchDirectorTests.MashingOnFromTheChargeIntoTheTimingPhase_DoesNotCommitIt` |

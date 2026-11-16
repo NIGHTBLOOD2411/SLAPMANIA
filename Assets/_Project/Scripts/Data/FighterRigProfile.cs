@@ -30,6 +30,11 @@ namespace SlapMania.Data
         [Min(0)] public int crossFadeMs = 120;
         [Tooltip("Played in order, one per slap, wrapping around.")]
         public AttackMove[] attacks = new AttackMove[0];
+        [Tooltip("When a slap's contact comes later than the bout's windup (a long mocap anticipation), the clip may " +
+                 "play up to this much faster before its start is skipped. 1 = always skip.")]
+        [Range(1f, 2f)] public float maxWindupSpeedup = 1.35f;
+        [Tooltip("Crossfade into the Charge wind-up: a captured load starts turned away, so it needs longer than crossFadeMs.")]
+        [Min(0)] public int chargeCrossFadeMs = 350;
 
         [Header("Look-at IK (fighters watch each other)")]
         [Range(0f, 1f)] public float lookWeight = 0.75f;
@@ -47,6 +52,13 @@ namespace SlapMania.Data
         public Vector3 handRotationOffset = new Vector3(0f, 0f, 90f);
         [Tooltip("Cheek point relative to the head bone: x = towards the attacker, y = up (metres).")]
         public Vector2 strikeOffset = new Vector2(0.11f, -0.03f);
+        [Tooltip("How far the slap lands to the striking hand's side of the face (metres): the cheek, not the nose.")]
+        [Range(0f, 0.2f)] public float cheekSideOffset = 0.08f;
+        [Tooltip("Most the body may pitch toward the cheek (degrees) when it is beyond arm's reach. Feet stay planted by IK. 0 = never.")]
+        [Range(0f, 45f)] public float maxStrikeLeanDeg = 32f;
+        [Tooltip("While planted (charge, slap, hit) the feet stay on their idle stance by IK: how much of a captured whole-body turn is kept. 1 = all, 0 = hips stay square.")]
+        [Range(0f, 1f)] public float plantedYawKeep = 0.45f;
+        [Min(1)] public int plantBlendMs = 200;
         [Tooltip("How far the striking hand's fingers straighten into an open-hand slap.")]
         [Range(0f, 1f)] public float openHandWeight = 1f;
 
@@ -62,6 +74,27 @@ namespace SlapMania.Data
         [Range(0f, 1f)] public float chestWeight = 0.18f;
         [Range(0f, 1f)] public float neckWeight = 0.3f;
         [Range(0f, 1f)] public float headWeight = 0.7f;
+
+        [Header("Physical animation (spring layer over the clip, ADR-0024)")]
+        [Tooltip("0 = the clip exactly; 1 = every upper-body bone chases the clip through its spring.")]
+        [Range(0f, 1f)] public float physicsWeight = 1f;
+        [Tooltip("Spine and chest: stiff, so the body leads and the arm trails.")]
+        [Range(1f, 15f)] public float torsoHz = 7f;
+        [Range(1f, 15f)] public float neckHeadHz = 4.5f;
+        [Tooltip("Shoulder to hand get softer down the chain: the lag compounds into the whip.")]
+        [Range(1f, 15f)] public float upperArmHz = 5f;
+        [Range(1f, 15f)] public float forearmHz = 4f;
+        [Range(1f, 15f)] public float handHz = 3.2f;
+        [Tooltip("Below 1 the bones overshoot and settle: follow-through. 1 = no overshoot.")]
+        [Range(0.1f, 1.5f)] public float dampingRatio = 0.45f;
+        [Tooltip("No simulated bone strays further than this from its animated rotation.")]
+        [Range(5f, 90f)] public float maxDeviationDeg = 50f;
+        [Tooltip("Head angular kick (degrees/second) at full slap intensity; the neck, chest and arms get a share.")]
+        [Min(0f)] public float hitImpulseDegPerSecond = 1100f;
+        [Tooltip("Share of the kick that turns the face away (vs tipping it over).")]
+        [Range(0f, 1f)] public float hitTwistShare = 0.6f;
+        [Tooltip("Muscle tremble while charging (degrees of spring deviation): the held wind-up strains instead of freezing.")]
+        [Range(0f, 10f)] public float chargeTrembleDeg = 2.5f;
 
         [Header("Knock-out (ragdoll)")]
         [Tooltip("Body velocity along the slap at the moment of the KO (m/s).")]

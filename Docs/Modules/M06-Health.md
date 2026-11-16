@@ -2,7 +2,7 @@
 module: M06-Health
 status: InProgress
 owner: shobhit
-last-verified: 2026-09-19
+last-verified: 2026-10-25
 verified-against: (pre-git)
 asmdef: SlapMania.Gameplay
 ---
@@ -110,5 +110,6 @@ None. `HealthTracker` is a value container with one mutation method. It does not
 
 | Date | Commit | Change |
 |---|---|---|
+| 2026-10-25 | (pre-git) | **Stamina ([ADR-0022](../Decisions/ADR-0022-champion-roster-and-stats.md)).** Max HP is `ChampionRules.MaxHp(BoutConfig.startingHp, stamina, staminaHpPerPoint)` per fighter (never below 1); neutral stamina keeps `startingHp`. `HealthTracker` itself is unchanged. |
 | 2026-09-19 | (pre-git) | Created (Draft) |
 | 2026-09-19 | (pre-git) | **P3 code landed.** `HealthTracker` per-fighter (`Init`, `ApplyDamage`, `OnHealthChanged`), asserts on negative amounts and uninitialised max. `HealthChangedEvent` payload lives in `SlapMania.Core`. EditMode tests cover init, clamp-to-zero, event delta. |

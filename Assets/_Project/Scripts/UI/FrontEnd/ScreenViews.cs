@@ -11,6 +11,7 @@ namespace SlapMania.UI.FrontEnd
                 case ScreenId.Title:      return new Screens.TitleView();
                 case ScreenId.Loader:     return new Screens.LoaderView();
                 case ScreenId.MainMenu:   return new Screens.MainMenuView();
+                case ScreenId.Roster:     return new Screens.RosterView();
                 case ScreenId.Search:     return new Screens.SearchView();
                 case ScreenId.Walkout:    return new Screens.WalkoutView();
                 case ScreenId.TaleOfTape: return new Screens.TaleOfTapeView();

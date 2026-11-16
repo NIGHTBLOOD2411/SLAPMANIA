@@ -28,10 +28,11 @@ namespace SlapMania.Editor.Characters
 
         public static string AlucardClipPath(string clipName) => AlucardClipFolder + "/" + AlucardStem + "@" + clipName + ".fbx";
 
-        /// Clips that should loop (idles and stances). Everything else plays once.
+        /// Clips that should loop (idles and stances), by shared clip name or by the role name a
+        /// champion's override file uses ("<stem>@Idle.fbx"). Everything else plays once.
         private static readonly HashSet<string> Looping = new HashSet<string>
         {
-            "Bouncing Fight Idle", "Boxing", "Boxing (1)"
+            "Bouncing Fight Idle", "Boxing", "Boxing (1)", "Idle", "Charge", "Victory"
         };
 
         [MenuItem("Tools/Slap Mania/Characters/Set Up Alucard As Humanoid", priority = 40)]
@@ -63,21 +64,7 @@ namespace SlapMania.Editor.Characters
         /// Returns a human-readable report; throws if the Avatar comes out invalid.
         public static string SetUpHumanoidSet(string basePath, string clipFolder)
         {
-            var baseImp = AssetImporter.GetAtPath(basePath) as ModelImporter;
-            if (baseImp == null) throw new FileNotFoundException("No model importer at " + basePath);
-
-            baseImp.animationType = ModelImporterAnimationType.Human;
-            baseImp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
-            baseImp.importAnimation = false;
-            baseImp.optimizeGameObjects = false; // IK, hit reaction and ragdoll need the bone transforms
-            baseImp.SaveAndReimport();
-            if (FixHipsMapping(baseImp)) baseImp.SaveAndReimport();
-
-            var avatar = LoadAvatar(basePath);
-            if (avatar == null || !avatar.isValid || !avatar.isHuman)
-                throw new System.InvalidOperationException("Avatar from " + basePath + " is not a valid humanoid (valid=" +
-                    (avatar != null && avatar.isValid) + ", human=" + (avatar != null && avatar.isHuman) + "). Check the bone mapping in the Avatar configurator.");
-
+            var avatar = SetUpHumanoidBase(basePath);
             string stem = Path.GetFileNameWithoutExtension(basePath);
             var report = new System.Text.StringBuilder("Avatar OK: " + avatar.name + "\n");
 
@@ -93,6 +80,42 @@ namespace SlapMania.Editor.Characters
             }
             if (clips == 0) report.Append("  ! no '" + stem + "@*' clip files in " + clipFolder + "\n");
             return report.ToString();
+        }
+
+        /// Rigs one base model as Humanoid (its own Avatar, no animation, bone transforms kept)
+        /// and returns the Avatar. Throws when the auto-mapper cannot make a valid humanoid -
+        /// the fix is then in the Avatar configurator, by hand. Used by the Champion Creator for
+        /// any rigged FBX (M08).
+        public static Avatar SetUpHumanoidBase(string basePath)
+        {
+            var baseImp = AssetImporter.GetAtPath(basePath) as ModelImporter;
+            if (baseImp == null) throw new FileNotFoundException("No model importer at " + basePath);
+
+            baseImp.animationType = ModelImporterAnimationType.Human;
+            baseImp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+            baseImp.importAnimation = false;
+            baseImp.optimizeGameObjects = false; // IK, hit reaction and ragdoll need the bone transforms
+            baseImp.SaveAndReimport();
+            if (FixHipsMapping(baseImp)) baseImp.SaveAndReimport();
+
+            var avatar = LoadAvatar(basePath);
+            if (avatar == null || !avatar.isValid || !avatar.isHuman)
+                throw new System.InvalidOperationException("Avatar from " + basePath + " is not a valid humanoid (valid=" +
+                    (avatar != null && avatar.isValid) + ", human=" + (avatar != null && avatar.isHuman) + "). " +
+                    "Select the FBX > Rig > Configure... and fix the bone mapping, then run the creator again.");
+            return avatar;
+        }
+
+        /// True when basePath is already a valid Humanoid with Hips on the pelvis (S-072), so a
+        /// rebuild need not reimport it.
+        public static bool BaseReady(string basePath)
+        {
+            var imp = AssetImporter.GetAtPath(basePath) as ModelImporter;
+            var avatar = LoadAvatar(basePath);
+            if (imp == null || imp.animationType != ModelImporterAnimationType.Human || avatar == null || !avatar.isValid || !avatar.isHuman) return false;
+            foreach (var hb in imp.humanDescription.human)
+                if (hb.humanName == "Hips" && !(hb.boneName == "Hips" || hb.boneName.EndsWith(":Hips"))) return false;
+            return true;
         }
 
         /// Unity's auto-mapper can bind Humanoid "Hips" to a Blender "Armature" object that sits
@@ -134,7 +157,65 @@ namespace SlapMania.Editor.Characters
             return null;
         }
 
-        private static string ConfigureClipFile(string path, string clipName, Avatar avatar)
+        /// One trimmed role from a mocap take (MocapSelection, ADR-0024): Humanoid with an avatar
+        /// from the file's own skeleton, `firstSec`..`lastSec` of its take, `yawOffset` degrees so
+        /// the clip faces the opponent. Rotation and height are baked; XZ is deliberately NOT, so
+        /// the actor's walking goes to root motion, which fighters discard (applyRootMotion off):
+        /// a baked 0.25 m drift would carry the body into the table. No-op when already set.
+        public static string ConfigureMocapCut(string path, string clipName, float firstSec, float lastSec, float yawOffset, bool loop)
+        {
+            var imp = AssetImporter.GetAtPath(path) as ModelImporter;
+            if (imp == null) return "  ! " + path + ": not a model file";
+            if (imp.animationType != ModelImporterAnimationType.Human || imp.avatarSetup != ModelImporterAvatarSetup.CreateFromThisModel)
+            {
+                imp.animationType = ModelImporterAnimationType.Human;
+                imp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+                imp.importAnimation = true;
+                imp.optimizeGameObjects = false;
+                imp.SaveAndReimport();   // the takes and the avatar exist only after this
+            }
+
+            var takes = imp.importedTakeInfos;
+            if (takes == null || takes.Length == 0) return "  ! " + clipName + ": " + path + " has no animation take";
+            var ti = takes[0];
+            foreach (var t in takes) if (t.name == "mixamo.com") { ti = t; break; }
+            float rate = ti.sampleRate > 0f ? ti.sampleRate : 30f;
+            float first = Mathf.Round(firstSec * rate), last = Mathf.Round(lastSec * rate);
+
+            var current = imp.clipAnimations;
+            bool same = current != null && current.Length == 1 && current[0].name == clipName
+                     && Mathf.Approximately(current[0].firstFrame, first) && Mathf.Approximately(current[0].lastFrame, last)
+                     && Mathf.Approximately(current[0].rotationOffset, yawOffset) && current[0].loopTime == loop
+                     && !current[0].lockRootPositionXZ;
+            if (!same)
+            {
+                imp.clipAnimations = new[]
+                {
+                    new ModelImporterClipAnimation
+                    {
+                        name = clipName,
+                        takeName = ti.name,
+                        firstFrame = first,
+                        lastFrame = last,
+                        loopTime = loop,
+                        loopPose = loop,
+                        lockRootRotation = true,
+                        keepOriginalOrientation = true,
+                        rotationOffset = yawOffset,
+                        lockRootHeightY = true,
+                        keepOriginalPositionY = false,
+                        heightFromFeet = true,
+                        lockRootPositionXZ = false,
+                        keepOriginalPositionXZ = false,
+                    }
+                };
+                imp.SaveAndReimport();
+            }
+            var clip = LoadClip(path, clipName);
+            return "  " + clipName + ": " + (clip != null ? clip.length.ToString("0.00") + "s humanMotion=" + clip.humanMotion : "MISSING after import");
+        }
+
+        public static string ConfigureClipFile(string path, string clipName, Avatar avatar)
         {
             var imp = (ModelImporter)AssetImporter.GetAtPath(path);
             imp.animationType = ModelImporterAnimationType.Human;
@@ -146,10 +227,12 @@ namespace SlapMania.Editor.Characters
             TakeInfo? take = null;
             foreach (var t in imp.importedTakeInfos)
                 if (t.name == "mixamo.com") { take = t; break; }
+            // Not from Mixamo (a champion's own override clip): its first take is the clip.
+            if (take == null && imp.importedTakeInfos.Length > 0) take = imp.importedTakeInfos[0];
             if (take == null)
             {
                 imp.SaveAndReimport();
-                return "  ! " + clipName + ": no 'mixamo.com' take; left as-is";
+                return "  ! " + clipName + ": no animation take; left as-is";
             }
 
             var ti = take.Value;

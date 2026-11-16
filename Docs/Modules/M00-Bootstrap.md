@@ -68,6 +68,11 @@ Asset: `Assets/_Project/Resources/GameConfig.asset` (it must sit under a `Resour
 **Invariants**
 - No field is null at load time — asserted in `OnValidate` and `Awake`.
 
+### Champions ([ADR-0022](../Decisions/ADR-0022-champion-roster-and-stats.md))
+
+- `GameConfig.roster` - optional `ChampionRoster`. Null/empty: the bout plays the scene's own fighters.
+- `GameRoot.SelectedChampionId` - the player's Roster pick (`ChampionDefinition.id`); empty = the roster's first. Session memory, not saved yet (M12).
+
 ## 5. Events
 
 **Emits**
@@ -130,6 +135,7 @@ All transitions are sequential `Awaitable` calls in `GameRoot.Awake`. There is n
 
 | Date | Commit | Change |
 |---|---|---|
+| 2026-10-25 | (pre-git) | **Champions ([ADR-0022](../Decisions/ADR-0022-champion-roster-and-stats.md)).** `GameConfig.roster` (optional `ChampionRoster`; `Validate` fails with `roster: ...` on a null entry, missing id/prefab or duplicate id). `GameRoot.SelectedChampionId` (session only until M12). |
 | 2026-10-23 | (pre-git) | **`GameConfig.hudAttention`** (optional, M10 [ADR-0021](../Decisions/ADR-0021-hud-attention-budget.md)): the in-bout HUD attention budget. `GameConfig.Validate` fails with `hudAttention: ...` when a wired budget breaks its own rules, and stays valid with none (the HUD uses defaults) |
 | 2026-10-23 | (pre-git) | `GameRoot.AiLadderLevel` (session-only ladder level, M07 §4b / [ADR-0018](../Decisions/ADR-0018-ai-ladder.md)). §3 updated |
 | 2026-09-19 | (pre-git) | Created (Draft) |

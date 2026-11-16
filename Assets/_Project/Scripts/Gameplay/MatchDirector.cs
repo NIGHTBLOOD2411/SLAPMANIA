@@ -36,6 +36,9 @@ namespace SlapMania.Gameplay
         public int TotalSlaps { get; private set; }
         /// The brace on the latest rival slap (NoBrace on the player's own turns).
         public BraceResult LastBrace => _lastBrace;
+        /// The latest landed slap earned a slapshot (SlapshotRule, M09). Set as its Snapshot or
+        /// FinisherSnapshot state starts, before SnapshotRequested / FinisherSnapshotRequested.
+        public bool LastWasSlapshot { get; private set; }
         /// The rival is winding up and the player's brace tap is being listened for.
         public bool IsBraceWindowOpen => _braceOpen;
 
@@ -55,6 +58,9 @@ namespace SlapMania.Gameplay
         private readonly TimingZoneLayout _zoneLayout;
         private readonly DamageConfig _damageCfg;
         private readonly HoldRingConfig _holdRingCfg;
+        // Champion stats (ADR-0022). Neutral until BindChampions: the pre-champion game.
+        private ChampionStats _playerStats = ChampionStats.Neutral;
+        private ChampionStats _opponentStats = ChampionStats.Neutral;
         private readonly PausableClock _clock;
         private readonly IRandom _rng;
 
@@ -67,7 +73,7 @@ namespace SlapMania.Gameplay
         private double IntroDuration            => _bout.introMs * 0.001;
         private double WindupDuration           => _bout.windupMs * 0.001;
         private double HitstopDuration          => _bout.hitstopMs * 0.001;
-        private double SnapshotDuration         => _bout.snapshotMs * 0.001;
+        private double SnapshotDuration         => (_bout.snapshotMs + (LastWasSlapshot ? _bout.slapshotHoldMs : 0)) * 0.001;
         private double FinisherDuration         => _bout.finisherMs * 0.001;
         private double FinisherSnapshotDuration => _bout.finisherSnapshotMs * 0.001;
         private double TurnTransitionDelay      => _bout.turnTransitionMs * 0.001;
@@ -130,12 +136,20 @@ namespace SlapMania.Gameplay
             _opponentSource.Configure(profile);
         }
 
+        /// The two champions' stats: power and chin scale every slap, stamina sets max health.
+        /// Call before StartBout; without it both fighters are neutral.
+        public void BindChampions(in ChampionStats player, in ChampionStats opponent)
+        {
+            _playerStats = player;
+            _opponentStats = opponent;
+        }
+
         public void StartBout()
         {
             SlapAssert.NotNull(_playerSource, "player source");
             SlapAssert.NotNull(_opponentSource, "opponent source");
-            PlayerHealth.Init(_bout.startingHp);
-            OpponentHealth.Init(_bout.startingHp);
+            PlayerHealth.Init(ChampionRules.MaxHp(_bout.startingHp, _playerStats.stamina, _bout.staminaHpPerPoint));
+            OpponentHealth.Init(ChampionRules.MaxHp(_bout.startingHp, _opponentStats.stamina, _bout.staminaHpPerPoint));
             TotalSlaps = 0;
             _turn = new TurnInfo(0, 0, _bout.playerGoesFirst ? FighterSlot.Player : FighterSlot.Opponent);
             CurrentAttackMode = ResolveAttackMode(); // the intro's hints name the verb
@@ -256,7 +270,7 @@ namespace SlapMania.Gameplay
                 {
                     var defenderHp = _turn.Defender == FighterSlot.Player ? PlayerHealth : OpponentHealth;
                     var input = new DamageInput(_lastPower.RawPower, _lastTiming.Multiplier, _turn.SlapIndex,
-                                                defenderHp.CurrentHp, defenderHp.MaxHp, 0f);
+                                                defenderHp.CurrentHp, defenderHp.MaxHp, 0f, CurrentStatScale());
                     _lastDamage = DamageResolver.Resolve(input, _damageCfg);
                     _lastBrace = BraceResult.NoBrace;
                     Signals.RaiseDamageResolved(_lastDamage);
@@ -290,7 +304,10 @@ namespace SlapMania.Gameplay
                 case MatchState.Hitstop:
                     if (TimeInState() >= HitstopDuration)
                     {
-                        // Every hit produces a snapshot. Finisher first if lethal.
+                        // Every hit produces a snapshot. Finisher first if lethal. A powerful one is
+                        // also a slapshot, and a non-lethal slapshot holds the Snapshot state longer
+                        // (the finisher already has its own stage).
+                        LastWasSlapshot = SlapshotRule.Qualifies(_lastDamage, _lastTiming, _lastPower, _bout.slapshotMinDamage);
                         if (_lastDamage.IsFinisher) EnterState(MatchState.Finisher);
                         else                        { EnterState(MatchState.Snapshot); Signals.RaiseSnapshotRequested(_lastDamage); }
                     }
@@ -377,13 +394,22 @@ namespace SlapMania.Gameplay
             {
                 var defenderHp = _turn.Defender == FighterSlot.Player ? PlayerHealth : OpponentHealth;
                 var input = new DamageInput(_lastPower.RawPower, _lastTiming.Multiplier, _turn.SlapIndex,
-                                            defenderHp.CurrentHp, defenderHp.MaxHp, _lastBrace.Reduction);
+                                            defenderHp.CurrentHp, defenderHp.MaxHp, _lastBrace.Reduction, CurrentStatScale());
                 _lastDamage = DamageResolver.Resolve(input, _damageCfg);
             }
             Signals.RaiseBraceResolved(_lastBrace);
         }
 
         // ─── Helpers ─────────────────────────────────────────────────
+        /// This turn's champion scale: the attacker's power against the defender's chin.
+        private float CurrentStatScale()
+        {
+            bool playerAttacks = _turn.Attacker == FighterSlot.Player;
+            return ChampionRules.SlapScale(playerAttacks ? _playerStats : _opponentStats,
+                                           playerAttacks ? _opponentStats : _playerStats,
+                                           _damageCfg.powerPerPoint, _damageCfg.chinPerPoint);
+        }
+
         private void EnterState(MatchState s)
         {
             CurrentState = s;

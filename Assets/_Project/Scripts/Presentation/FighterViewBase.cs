@@ -22,6 +22,10 @@ namespace SlapMania.Presentation
         /// Defaults to a point above the root for views without a skeleton.
         public virtual Transform HeadAnchor => transform;
 
+        /// The hand of the latest slap (the slapshot camera frames the cheek it lands on), or
+        /// null for views without hands.
+        public virtual Transform StrikingHand => null;
+
         public virtual Vector3 GetStrikePoint(Vector3 attackerPosition)
         {
             Vector3 head = HeadAnchor.position;

@@ -79,6 +79,56 @@ namespace SlapMania.Tests.EditMode
             Assert.AreEqual(1.200, turnEndAt - snapshotAt, 0.004);
         }
 
+        // Slapshot hold (M09): pinned against LastWasSlapshot, so it holds whatever SlapshotRule says.
+        [TestCase(0, 1400)]    // every slap clears the damage bar
+        [TestCase(1000, 1400)] // no slap can: never a hold
+        [TestCase(0, 0)]       // hold switched off
+        public void SnapshotState_LastsSnapshotMs_PlusHoldOnlyForASlapshot(int minDamage, int holdMs)
+        {
+            var clock = new ManualClock();
+            var player = new ManualTapSource();
+            var bout = TestFactories.Bout(hp: 300);
+            bout.introMs = 0;
+            bout.snapshotMs = 50;
+            bout.turnTransitionMs = 0;
+            bout.slapshotMinDamage = minDamage;
+            bout.slapshotHoldMs = holdMs;
+            var d = NewDirector(bout, clock, player);
+
+            double snapshotAt = -1, turnEndAt = -1;
+            bool flagAtSignal = false;
+            d.Signals.SnapshotRequested += _ => { if (snapshotAt < 0) { snapshotAt = clock.Now; flagAtSignal = d.LastWasSlapshot; } };
+            d.Signals.TurnEnd += _ => { if (turnEndAt < 0) turnEndAt = clock.Now; };
+
+            d.StartBout();
+            Run(d, clock, player, () => turnEndAt >= 0, 400000);
+
+            Assert.GreaterOrEqual(snapshotAt, 0, "no snapshot - the first slap should not be lethal at 300 HP");
+            Assert.AreEqual(d.LastWasSlapshot, flagAtSignal, "LastWasSlapshot must be set before SnapshotRequested");
+            if (minDamage >= 1000) Assert.IsFalse(d.LastWasSlapshot, "no slap deals 1000 damage");
+            double expected = (50 + (d.LastWasSlapshot ? holdMs : 0)) * 0.001;
+            Assert.AreEqual(expected, turnEndAt - snapshotAt, 0.004);
+        }
+
+        [Test]
+        public void NegativeSlapshotHold_NoHang()
+        {
+            var clock = new ManualClock();
+            var player = new ManualTapSource();
+            var bout = TestFactories.Bout(hp: 40);
+            bout.introMs = 0;
+            bout.slapshotMinDamage = 0;
+            bout.slapshotHoldMs = -5000;
+            var d = NewDirector(bout, clock, player);
+
+            bool ended = false;
+            d.Signals.BoutEnd += _ => ended = true;
+            d.StartBout();
+            Run(d, clock, player, () => ended, 500000);
+
+            Assert.IsTrue(ended, "a negative slapshot hold wedged the FSM");
+        }
+
         [Test]
         public void ZeroPacing_DuelStillTerminates()
         {

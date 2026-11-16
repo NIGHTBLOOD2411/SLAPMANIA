@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12bd3b2a0c1d5d541a5daa31ad6c5508, type: 3}
+  m_Name: ChampionRoster
+  m_EditorClassIdentifier: SlapMania.Data::SlapMania.Data.ChampionRoster
+  champions:
+  - {fileID: 11400000, guid: 09fd270e908627f4caaf4e61a408fd21, type: 2}
+  - {fileID: 11400000, guid: e242dbd3e1b296b49af773d507533f41, type: 2}
+  - {fileID: 11400000, guid: c16dcdd0200b4e1438aa809fb93682ab, type: 2}

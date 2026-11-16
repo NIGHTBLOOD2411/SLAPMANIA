@@ -37,7 +37,9 @@ namespace SlapMania.Editor.Arena
         private const string UnlitShader = "Universal Render Pipeline/Unlit";
 
         public const float FloorRadius = 12f;
-        public static readonly Vector3 PodiumSize = new Vector3(0.45f, 0.8f, 0.9f);
+        // Width along the slap line fits between the fighters' marks (PrototypeSceneBuilder.HumanoidX,
+        // ADR-0023): 2 x (0.42 - 0.24 clearance) = 0.36 m.
+        public static readonly Vector3 PodiumSize = new Vector3(0.36f, 0.8f, 0.9f);
         private const float BoardRadius = 7.8f, BoardHeight = 1f;
         private const float LowerR0 = 8.4f, LowerDepth = 0.85f, LowerRise = 0.45f;
         private const int LowerRows = 14;
@@ -275,7 +277,8 @@ namespace SlapMania.Editor.Arena
             });
 
             float w = PodiumSize.x, h = PodiumSize.y, d = PodiumSize.z;
-            const float slab = 0.08f, apronTop = 0.72f, apronBottom = 0.58f, apronHalfW = 0.15f, leg = 0.07f;
+            const float slab = 0.08f, apronTop = 0.72f, apronBottom = 0.58f, leg = 0.07f;
+            float apronHalfW = w * 0.5f - 0.075f; // inside the legs at any width (0.15 at the old 0.45 m)
             float legX = w * 0.5f - leg * 0.5f, legZ = d * 0.5f - leg * 0.5f;
             float apronH = apronTop - apronBottom, apronD = d - 0.1f;
 

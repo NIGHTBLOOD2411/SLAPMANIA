@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd5d7c9d9bf6a6d45ad3a4634b1ae404, type: 3}
+  m_Name: Champion_Alucard
+  m_EditorClassIdentifier: SlapMania.Data::SlapMania.Data.ChampionDefinition
+  id: Alucard
+  displayName: Alucard
+  originId: Castlevania Plane
+  classTag: TEC
+  portrait: {fileID: 2800000, guid: ebae2e552ce68b446891b5640c8f84ca, type: 3}
+  cardFinish: 0
+  fighterPrefab: {fileID: 3841832934443546419, guid: a5c3e7da3445ebf478fdcc183dbb6257,
+    type: 3}
+  rigProfile: {fileID: 11400000, guid: 732488593d17417469fa704a6ff3a5aa, type: 2}
+  hiddenProps:
+  - sword
+  stats:
+    power: 80
+    speed: 84
+    chin: 72
+    technique: 88
+    rage: 70
+    stamina: 76

@@ -62,6 +62,21 @@ namespace SlapMania.UI.FrontEnd
         /// other than the serialized initial screen.
         public ScreenId StartScreen { get => _initial; set => _initial = value; }
 
+        /// The champions the Roster tab lists (M08), set by the composition root before the tab
+        /// first opens. Null or empty: the tab keeps the mockup's static cards.
+        public ChampionRoster Roster { get; set; }
+        /// The picked champion's id. The Roster tab writes it; the App reads it back through
+        /// ChampionSelected and starts the next bout with it.
+        public string SelectedChampionId { get; set; } = "";
+        public event Action<string> ChampionSelected;
+
+        internal void SelectChampion(string id)
+        {
+            if (id == SelectedChampionId) return;
+            SelectedChampionId = id;
+            ChampionSelected?.Invoke(id);
+        }
+
         private void OnEnable()
         {
             if (_document == null) _document = GetComponent<UIDocument>();

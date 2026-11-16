@@ -46,6 +46,10 @@ namespace SlapMania.App
         /// moves down. Session memory only until M12 saves it.
         public int AiLadderLevel { get; set; }
 
+        /// The player's champion (ChampionDefinition.id) from the Roster tab. Empty = the
+        /// roster's first. Session memory only until M12 saves it.
+        public string SelectedChampionId { get; set; } = "";
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }

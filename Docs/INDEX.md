@@ -87,6 +87,9 @@ arena ([ADR-0012](Decisions/ADR-0012-arena-mobile-fakes.md)).
 | [0019](Decisions/ADR-0019-brace-tap-defence.md) | Brace: a one-tap defence on the rival's turn, through DamageInput.reduction | Accepted |
 | [0020](Decisions/ADR-0020-camera-keyframe-tracks-and-runtime-recorder.md) | Camera keyframe tracks, a layered CameraDirector, and a runtime recorder | Accepted |
 | [0021](Decisions/ADR-0021-hud-attention-budget.md) | HUD attention budget: a tunable per-phase budget, one headline at a time | Accepted |
+| [0022](Decisions/ADR-0022-champion-roster-and-stats.md) | Champion roster: FBX-built champions, runtime spawn, PWR/CHN/STA change the bout | Accepted |
+| [0023](Decisions/ADR-0023-authored-slap-clips-and-fighter-fit.md) | Authored slap clips (no Mixamo boxing), one fighter size, table fitted to measurements | Accepted |
+| [0024](Decisions/ADR-0024-physical-animation-and-mocap-drop-in.md) | Physical animation spring layer (whip, follow-through, hit impulse); shared mocap drop-in folder | Accepted |
 
 ## Tooling
 

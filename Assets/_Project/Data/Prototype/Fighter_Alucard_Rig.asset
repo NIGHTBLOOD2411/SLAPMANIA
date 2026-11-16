@@ -19,12 +19,14 @@ MonoBehaviour:
   victoryState: Victory
   crossFadeMs: 120
   attacks:
-  - state: Attack_Hook
-    contactMs: 1156
+  - state: Slap_Right
+    contactMs: 435
     rightHand: 1
-  - state: Attack_Cross
-    contactMs: 944
-    rightHand: 1
+  - state: Slap_Left
+    contactMs: 435
+    rightHand: 0
+  maxWindupSpeedup: 1.35
+  chargeCrossFadeMs: 350
   lookWeight: 0.75
   lookBodyWeight: 0.15
   lookHeadWeight: 0.9
@@ -36,6 +38,8 @@ MonoBehaviour:
   ikRotationWeight: 0.45
   handRotationOffset: {x: 0, y: 0, z: 90}
   strikeOffset: {x: 0.11, y: -0.03}
+  cheekSideOffset: 0.08
+  maxStrikeLeanDeg: 32
   openHandWeight: 1
   springFrequency: 5.5
   springDamping: 0.35
@@ -46,6 +50,17 @@ MonoBehaviour:
   chestWeight: 0.18
   neckWeight: 0.3
   headWeight: 0.7
+  physicsWeight: 1
+  torsoHz: 7
+  neckHeadHz: 4.5
+  upperArmHz: 5
+  forearmHz: 4
+  handHz: 3.2
+  dampingRatio: 0.45
+  maxDeviationDeg: 50
+  hitImpulseDegPerSecond: 1100
+  hitTwistShare: 0.6
+  chargeTrembleDeg: 2.5
   koVelocity: 4
   koUpVelocity: 1.1
   koHeadExtra: 2.6

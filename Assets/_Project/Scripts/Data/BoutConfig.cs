@@ -12,6 +12,9 @@ namespace SlapMania.Data
                  "Default TapMarker since 2026-10-23: a tap in HoldRing is an instant release (DEBUG S-090).")]
         public AttackMode attackMode = AttackMode.TapMarker;
         [Range(20, 300)] public int startingHp = 100;
+        [Tooltip("Champion STA (ADR-0022): starting health changes by this much per point from 75. " +
+                 "0.5 gives a 99-stamina champion 112 HP and a 55 one 90.")]
+        [Range(0f, 3f)] public float staminaHpPerPoint = 0.5f;
         public bool playerGoesFirst = true;
         [Range(5, 60)] public int maxRounds = 20;
         [Range(20, 100)] public int maxTurns = 40;
@@ -37,5 +40,13 @@ namespace SlapMania.Data
         [Min(0)] public int finisherSnapshotMs = 100;
         [Tooltip("TurnEnd: breathing room before the other fighter's turn.")]
         [Min(0)] public int turnTransitionMs = 300;
+
+        // Slapshots (M09, GLOSSARY): a powerful slap is photographed as a Polaroid and the bout
+        // holds a moment so it can be seen. SlapshotRule decides which slaps qualify.
+        [Header("Slapshot")]
+        [Tooltip("Final damage a slap needs before SlapshotRule considers it powerful.")]
+        [Min(0)] public int slapshotMinDamage = 30;
+        [Tooltip("Extra Snapshot-state time when a slap is a slapshot: the Polaroid's moment on screen.")]
+        [Min(0)] public int slapshotHoldMs = 1400;
     }
 }

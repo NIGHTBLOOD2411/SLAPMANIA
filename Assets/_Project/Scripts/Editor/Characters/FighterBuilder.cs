@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -8,33 +9,57 @@ using static SlapMania.Editor.SceneBuildUtil;
 
 namespace SlapMania.Editor.Characters
 {
-    /// Builds a playable humanoid fighter from the Alucard FBX set (M08):
-    ///   1. Humanoid import (FighterImportSetup) — skipped when already correct.
-    ///   2. Measures each attack clip's contact: the time the striking hand is furthest forward,
-    ///      sampled from the clip itself, and which hand that is.
-    ///   3. Animator Controller: Idle / Charge / Attack_* / Hit / Block / Victory, IK pass on,
-    ///      an AttackSpeed parameter so a windup can be fitted to the FSM's impact frame.
-    ///   4. FighterRigProfile asset (created once — tuning survives rebuilds).
-    ///   5. Ragdoll: 11 bodies, colliders and CharacterJoints, kinematic until the KO.
-    ///   6. Prefab: model + Animator + SlapIK + HitReactor + HumanoidFighterView + ragdoll,
-    ///      with the sword hidden.
+    /// Builds a playable humanoid fighter from any rigged FBX (M08). Alucard is one champion
+    /// built this way; the Champion Creator builds the rest.
+    ///   1. Humanoid import of the base model (FighterImportSetup) - skipped when already correct.
+    ///   2. Clips: every role (Idle, Charge, Hit, Block, Victory, two slaps) uses the authored
+    ///      slap set (SlapClipAuthor, ADR-0023), retargeted through Humanoid, unless the base
+    ///      model's folder has an override "<stem>@<State>.fbx".
+    ///   3. Attack contact: the authored slap's contact is exact (SlapClipAuthor.ContactSeconds);
+    ///      an override clip is measured on THIS rig (the striking hand furthest forward).
+    ///   4. Animator Controller: Idle / Charge / Slap_Right / Slap_Left (the same clip, mirrored)
+    ///      / Hit / Block / Victory, IK pass on, an AttackSpeed parameter so a windup can be
+    ///      fitted to the FSM's impact frame.
+    ///   5. FighterRigProfile asset (created once - tuning survives rebuilds).
+    ///   6. Ragdoll: 11 bodies, colliders and CharacterJoints, kinematic until the KO.
+    ///   7. Prefab: model + Animator + SlapIK + PhysicalAnimationLayer + HumanoidFighterView + ragdoll,
+    ///      with props whose names start with a hide prefix switched off (Alucard's sword).
     /// The controller and prefab are generated artifacts and are rebuilt every run.
     public static class FighterBuilder
     {
         private const string AnimDir = "Assets/_Project/Animation/Fighter";
         private const string PrefabDir = "Assets/_Project/Prefabs/Fighters";
         private const string DataDir = "Assets/_Project/Data/Prototype";
-        public const string ControllerPath = AnimDir + "/Fighter_Alucard.controller";
-        public const string PrefabPath = PrefabDir + "/Fighter_Alucard.prefab";
-        public const string ProfilePath = DataDir + "/Fighter_Alucard_Rig.asset";
+        public const string AlucardId = "Alucard";
+        public static readonly string ControllerPath = ControllerPathFor(AlucardId);
+        public static readonly string PrefabPath = PrefabPathFor(AlucardId);
+        public static readonly string ProfilePath = ProfilePathFor(AlucardId);
 
-        private struct AttackSpec { public string Clip; public string State; }
+        public static string ControllerPathFor(string id) => AnimDir + "/Fighter_" + id + ".controller";
+        public static string PrefabPathFor(string id) => PrefabDir + "/Fighter_" + id + ".prefab";
+        public static string ProfilePathFor(string id) => DataDir + "/Fighter_" + id + "_Rig.asset";
 
-        private static readonly AttackSpec[] Attacks =
+        /// One animation role: the Animator state it becomes and the authored slap clip that fills
+        /// it (SlapClipAuthor, ADR-0023). `Mirror` plays the clip mirrored: the left-hand slap is
+        /// the forehand on a mirrored state.
+        /// `Mocap` is the role in MocapSelection (ADR-0024); a role with no pick plays the authored clip.
+        private struct Role { public string State; public string Clip; public string Mocap; public bool Attack; public bool Mirror; }
+
+        private static readonly Role[] Roles =
         {
-            new AttackSpec { Clip = "Hook Punch",  State = "Attack_Hook" },
-            new AttackSpec { Clip = "Cross Punch", State = "Attack_Cross" },
+            new Role { State = "Idle",       Clip = SlapClipAuthor.Idle,     Mocap = "Idle" },
+            new Role { State = "Charge",     Clip = SlapClipAuthor.Charge,   Mocap = "Charge" },
+            new Role { State = "Victory",    Clip = SlapClipAuthor.Victory,  Mocap = "Victory" },
+            new Role { State = "Hit",        Clip = SlapClipAuthor.Hit,      Mocap = "Hit" },
+            new Role { State = "Block",      Clip = SlapClipAuthor.Block,    Mocap = "Block" },
+            new Role { State = "Slap_Right", Clip = SlapClipAuthor.Forehand, Mocap = "Slap", Attack = true },
+            new Role { State = "Slap_Left",  Clip = SlapClipAuthor.Forehand, Mocap = "Slap", Attack = true, Mirror = true },
         };
+
+        // Seconds the mocap Charge (a one-shot wind-up) is stretched over: about the charge phase.
+        private const float MocapChargeSeconds = 2.2f;
+        // A mocap slap ends with the body turned far past square: the way back to Idle needs longer.
+        private const float MocapAttackReturnSeconds = 0.45f;
 
         [MenuItem("Tools/Slap Mania/Characters/Build Alucard Fighter Prefab", priority = 41)]
         public static void BuildMenu()
@@ -48,54 +73,97 @@ namespace SlapMania.Editor.Characters
         public static GameObject BuildAlucard()
         {
             string basePath = FighterImportSetup.FindBaseModel(FighterImportSetup.AlucardStem);
-            if (!HumanoidReady(basePath)) FighterImportSetup.SetUpHumanoidSet(basePath, FighterImportSetup.AlucardClipFolder);
+            return Build(AlucardId, basePath, new[] { "sword" }, out _, out _);
+        }
+
+        /// Builds the fighter `id` from the rigged model at basePath. `hidePrefixes` names props
+        /// to switch off (case-insensitive name prefixes). `report` lists where every clip came
+        /// from. Throws with a clear message on any missing input.
+        public static GameObject Build(string id, string basePath, string[] hidePrefixes,
+                                       out FighterRigProfile profile, out string report)
+        {
+            if (string.IsNullOrEmpty(id)) throw new System.ArgumentException("Fighter id is empty.");
+            if (!FighterImportSetup.BaseReady(basePath)) FighterImportSetup.SetUpHumanoidBase(basePath);
             var avatar = FighterImportSetup.LoadAvatar(basePath);
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(basePath);
             if (model == null || avatar == null || !avatar.isHuman)
-                throw new System.InvalidOperationException("Alucard base model or humanoid Avatar missing at " + basePath);
+                throw new System.InvalidOperationException("Base model or humanoid Avatar missing at " + basePath);
 
-            var clips = new Dictionary<string, AnimationClip>();
-            foreach (var name in new[] { "Bouncing Fight Idle", "Boxing", "Boxing (1)", "Hook Punch", "Cross Punch",
-                                          "Receive Uppercut To The Face", "Inward Block" })
-            {
-                var clip = FighterImportSetup.LoadClip(FighterImportSetup.AlucardClipPath(name), name);
-                if (clip == null) throw new System.InvalidOperationException("Clip '" + name + "' not found - run Tools > Slap Mania > Characters > Set Up Alucard As Humanoid.");
-                clips[name] = clip;
-            }
+            var clips = ResolveClips(basePath, avatar, out report, out var overridden);
 
             EnsureFolder(AnimDir);
             EnsureFolder(PrefabDir);
             EnsureFolder(DataDir);
 
-            var controller = BuildController(clips);
-            var profile = BuildProfile(model, avatar, clips);
-            return BuildPrefab(model, avatar, controller, profile);
+            var controller = BuildController(ControllerPathFor(id), clips, overridden);
+            profile = BuildProfile(ProfilePathFor(id), model, avatar, clips, overridden);
+            return BuildPrefab(id, model, avatar, controller, profile, hidePrefixes);
         }
 
-        private static bool HumanoidReady(string basePath)
+        // ── Clips ────────────────────────────────────────────────────
+        /// State name -> clip. An override "<stem>@<State>.fbx" next to the base model wins;
+        /// otherwise the authored slap clip, retargeted by the Humanoid Avatar. Overridden states
+        /// are recorded in `overridden` so their contact is measured rather than assumed.
+        private static Dictionary<string, AnimationClip> ResolveClips(string basePath, Avatar avatar, out string report,
+                                                                      out HashSet<string> overridden)
         {
-            var imp = AssetImporter.GetAtPath(basePath) as ModelImporter;
-            var avatar = FighterImportSetup.LoadAvatar(basePath);
-            if (imp == null || imp.animationType != ModelImporterAnimationType.Human || avatar == null || !avatar.isValid) return false;
-            foreach (var hb in imp.humanDescription.human)       // S-072: Hips must be the pelvis bone
-                if (hb.humanName == "Hips" && !(hb.boneName == "Hips" || hb.boneName.EndsWith(":Hips"))) return false;
-            foreach (var a in Attacks)
+            string stem = Path.GetFileNameWithoutExtension(basePath);
+            string folder = Path.GetDirectoryName(basePath).Replace('\\', '/');
+            var authored = SlapClipAuthor.BuildAll();
+            var sb = new System.Text.StringBuilder();
+            var clips = new Dictionary<string, AnimationClip>();
+            overridden = new HashSet<string>();
+            foreach (var r in Roles)
             {
-                string path = FighterImportSetup.AlucardClipPath(a.Clip);
-                if (FighterImportSetup.LoadClip(path, a.Clip) == null) return false;
-                // Re-run the setup when the clip settings predate the centre-of-mass / feet fix.
-                var clipImp = AssetImporter.GetAtPath(path) as ModelImporter;
-                var settings = clipImp != null ? clipImp.clipAnimations : null;
-                if (settings == null || settings.Length == 0 || settings[0].keepOriginalPositionXZ || !settings[0].heightFromFeet) return false;
+                var clip = LoadOverride(folder, stem, r.State, avatar);
+                if (clip != null)
+                {
+                    overridden.Add(r.State);
+                    sb.Append("  ").Append(r.State).Append(": override ").Append(clip.name).Append('\n');
+                }
+                else if ((clip = MocapSelection.Load(r.Mocap)) != null)
+                {
+                    overridden.Add(r.State);   // its contact is measured, not assumed
+                    sb.Append("  ").Append(r.State).Append(": mocap ").Append(AssetDatabase.GetAssetPath(clip))
+                      .Append(r.Mirror ? " (mirrored)" : "").Append('\n');
+                }
+                else
+                {
+                    clip = authored[r.Clip];
+                    sb.Append("  ").Append(r.State).Append(": authored ").Append(r.Clip).Append(r.Mirror ? " (mirrored)" : "").Append('\n');
+                }
+                clips[r.State] = clip;
             }
-            return true;
+            report = sb.ToString();
+            return clips;
+        }
+
+        private static AnimationClip LoadOverride(string folder, string stem, string clipName, Avatar avatar)
+        {
+            string path = folder + "/" + stem + "@" + clipName + ".fbx";
+            if (AssetImporter.GetAtPath(path) is ModelImporter imp)
+            {
+                // Configure once: an override already bound to this Avatar is left alone.
+                if (imp.sourceAvatar != avatar || FighterImportSetup.LoadClip(path, clipName) == null)
+                    FighterImportSetup.ConfigureClipFile(path, clipName, avatar);
+                return FighterImportSetup.LoadClip(path, clipName);
+            }
+            return null;
         }
 
         // ── Animator Controller ──────────────────────────────────────
-        private static AnimatorController BuildController(Dictionary<string, AnimationClip> clips)
+        private static AnimatorController BuildController(string path, Dictionary<string, AnimationClip> clips, HashSet<string> overridden)
         {
-            if (AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath) != null) AssetDatabase.DeleteAsset(ControllerPath);
-            var c = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
+            // Rebuilt in place, never deleted (S-104): a delete + create at the same path reuses the
+            // GUID, and any prefab already loaded keeps a pointer to the destroyed controller.
+            var c = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+            if (c == null) c = AnimatorController.CreateAnimatorControllerAtPath(path);
+            else
+            {
+                while (c.layers.Length > 0) c.RemoveLayer(0);
+                foreach (var p in c.parameters) c.RemoveParameter(p);
+                c.AddLayer("Base Layer");
+            }
             c.AddParameter(new AnimatorControllerParameter { name = "AttackSpeed", type = AnimatorControllerParameterType.Float, defaultFloat = 1f });
 
             var layers = c.layers;
@@ -103,22 +171,27 @@ namespace SlapMania.Editor.Characters
             c.layers = layers;
             var sm = c.layers[0].stateMachine;
 
-            var idle = State(sm, "Idle", clips["Bouncing Fight Idle"], new Vector3(300f, 0f));
+            var idle = State(sm, "Idle", clips["Idle"], new Vector3(300f, 0f));
             sm.defaultState = idle;
-            State(sm, "Charge", clips["Boxing"], new Vector3(300f, 80f));
-            State(sm, "Victory", clips["Boxing (1)"], new Vector3(300f, 160f));
-            var hit = State(sm, "Hit", clips["Receive Uppercut To The Face"], new Vector3(560f, 0f));
-            var block = State(sm, "Block", clips["Inward Block"], new Vector3(560f, 80f));
+            var charge = State(sm, "Charge", clips["Charge"], new Vector3(300f, 80f));
+            // A captured wind-up is a one-shot: spread it over the charge, then it holds at the load.
+            if (overridden.Contains("Charge") && !clips["Charge"].isLooping)
+                charge.speed = clips["Charge"].length / MocapChargeSeconds;
+            State(sm, "Victory", clips["Victory"], new Vector3(300f, 160f));
+            var hit = State(sm, "Hit", clips["Hit"], new Vector3(560f, 0f));
+            var block = State(sm, "Block", clips["Block"], new Vector3(560f, 80f));
             ReturnToIdle(hit, idle, 0.85f);
             ReturnToIdle(block, idle, 0.9f);
 
             float y = 240f;
-            foreach (var a in Attacks)
+            foreach (var r in Roles)
             {
-                var s = State(sm, a.State, clips[a.Clip], new Vector3(560f, y));
+                if (!r.Attack) continue;
+                var s = State(sm, r.State, clips[r.State], new Vector3(560f, y));
+                s.mirror = r.Mirror;
                 s.speedParameterActive = true;
                 s.speedParameter = "AttackSpeed";
-                ReturnToIdle(s, idle, 0.92f);
+                ReturnToIdle(s, idle, 0.92f, overridden.Contains(r.State) ? MocapAttackReturnSeconds : 0.2f);
                 y += 80f;
             }
             AssetDatabase.SaveAssets();
@@ -133,43 +206,75 @@ namespace SlapMania.Editor.Characters
             return s;
         }
 
-        private static void ReturnToIdle(AnimatorState from, AnimatorState idle, float exitTime)
+        private static void ReturnToIdle(AnimatorState from, AnimatorState idle, float exitTime, float seconds = 0.2f)
         {
             var t = from.AddTransition(idle);
             t.hasExitTime = true;
             t.exitTime = exitTime;
-            t.duration = 0.2f;
+            t.duration = seconds;
             t.hasFixedDuration = true;
         }
 
         // ── Profile + contact measurement ───────────────────────────
-        private static FighterRigProfile BuildProfile(GameObject model, Avatar avatar, Dictionary<string, AnimationClip> clips)
+        private static FighterRigProfile BuildProfile(string path, GameObject model, Avatar avatar,
+                                                      Dictionary<string, AnimationClip> clips, HashSet<string> overridden)
         {
-            var profile = AssetDatabase.LoadAssetAtPath<FighterRigProfile>(ProfilePath);
+            var profile = AssetDatabase.LoadAssetAtPath<FighterRigProfile>(path);
             bool created = profile == null;
             if (created)
             {
                 profile = ScriptableObject.CreateInstance<FighterRigProfile>();
-                AssetDatabase.CreateAsset(profile, ProfilePath);
+                AssetDatabase.CreateAsset(profile, path);
             }
-            if (created || profile.attacks == null || profile.attacks.Length == 0)
+            // The attacks are measured data, not tuning: re-derived on every build, so swapping a
+            // clip (authored -> mocap, or a new override) never leaves a stale contact time.
+            if (created || !AttacksMatchRoles(profile.attacks) || overridden.Count > 0 || AnyAuthoredContactDrift(profile.attacks, overridden))
             {
-                var moves = new FighterRigProfile.AttackMove[Attacks.Length];
-                for (int i = 0; i < Attacks.Length; i++)
+                var moves = new List<FighterRigProfile.AttackMove>();
+                foreach (var r in Roles)
                 {
-                    MeasureContact(model, avatar, clips[Attacks[i].Clip], out float seconds, out bool right);
-                    moves[i] = new FighterRigProfile.AttackMove
+                    if (!r.Attack) continue;
+                    // The authored slap's contact is exact; an override clip is measured on this rig.
+                    float seconds = SlapClipAuthor.ContactSeconds;
+                    bool right = !r.Mirror;
+                    if (overridden.Contains(r.State))
                     {
-                        state = Attacks[i].State,
+                        MeasureContact(model, avatar, clips[r.State], out seconds, out right);
+                        if (r.Mirror) right = !right;
+                    }
+                    moves.Add(new FighterRigProfile.AttackMove
+                    {
+                        state = r.State,
                         contactMs = Mathf.RoundToInt(seconds * 1000f),
                         rightHand = right,
-                    };
+                    });
                 }
-                profile.attacks = moves;
+                profile.attacks = moves.ToArray();
                 EditorUtility.SetDirty(profile);
                 AssetDatabase.SaveAssets();
             }
             return profile;
+        }
+
+        // An attack that now plays the authored clip but carries another contact (it was mocap).
+        private static bool AnyAuthoredContactDrift(FighterRigProfile.AttackMove[] attacks, HashSet<string> overridden)
+        {
+            int authoredMs = Mathf.RoundToInt(SlapClipAuthor.ContactSeconds * 1000f);
+            foreach (var a in attacks)
+                if (!overridden.Contains(a.state) && a.contactMs != authoredMs) return true;
+            return false;
+        }
+
+        private static bool AttacksMatchRoles(FighterRigProfile.AttackMove[] attacks)
+        {
+            if (attacks == null || attacks.Length == 0) return false;
+            foreach (var a in attacks)
+            {
+                bool known = false;
+                foreach (var r in Roles) if (r.Attack && r.State == a.state) { known = true; break; }
+                if (!known) return false;
+            }
+            return true;
         }
 
         /// Samples the clip on a temporary copy of the model and returns when (and with which
@@ -214,9 +319,11 @@ namespace SlapMania.Editor.Characters
         }
 
         // ── Prefab ───────────────────────────────────────────────────
-        private static GameObject BuildPrefab(GameObject model, Avatar avatar, AnimatorController controller, FighterRigProfile profile)
+        private static GameObject BuildPrefab(string id, GameObject model, Avatar avatar, AnimatorController controller,
+                                              FighterRigProfile profile, string[] hidePrefixes)
         {
-            var root = new GameObject("Fighter_Alucard");
+            string prefabPath = PrefabPathFor(id);
+            var root = new GameObject("Fighter_" + id);
             try
             {
                 var body = (GameObject)PrefabUtility.InstantiatePrefab(model);
@@ -232,12 +339,18 @@ namespace SlapMania.Editor.Characters
 
                 var ik = body.AddComponent<SlapIK>();
                 ik.Profile = profile;
-                var reactor = body.AddComponent<HitReactor>();
-                reactor.Profile = profile;
+                // The spring layer takes the hits (ADR-0024); HitReactor is no longer added.
+                var physics = body.AddComponent<PhysicalAnimationLayer>();
+                physics.Profile = profile;
+                physics.StrikeIK = ik;
 
                 var hidden = new List<Object>();
-                foreach (var t in body.GetComponentsInChildren<Transform>(true))
-                    if (t.name.Trim().StartsWith("sword", System.StringComparison.OrdinalIgnoreCase)) hidden.Add(t.gameObject);
+                if (hidePrefixes != null)
+                    foreach (var t in body.GetComponentsInChildren<Transform>(true))
+                        foreach (var prefix in hidePrefixes)
+                            if (!string.IsNullOrWhiteSpace(prefix) && t != body.transform &&
+                                t.name.Trim().StartsWith(prefix.Trim(), System.StringComparison.OrdinalIgnoreCase))
+                            { hidden.Add(t.gameObject); break; }
 
                 var ragdoll = root.AddComponent<RagdollController>();
                 RagdollBuilder.Build(anim, ragdoll);
@@ -246,12 +359,12 @@ namespace SlapMania.Editor.Characters
                 Set(view, "_animator", anim);
                 Set(view, "_profile", profile);
                 Set(view, "_ik", ik);
-                Set(view, "_hitReactor", reactor);
+                Set(view, "_physics", physics);
                 Set(view, "_ragdoll", ragdoll);
                 SetArray(view, "_hidden", hidden.ToArray());
 
-                var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath, out bool ok);
-                if (!ok || prefab == null) throw new System.IO.IOException("Could not save " + PrefabPath);
+                var prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath, out bool ok);
+                if (!ok || prefab == null) throw new IOException("Could not save " + prefabPath);
                 return prefab;
             }
             finally

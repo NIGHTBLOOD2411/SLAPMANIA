@@ -14,9 +14,11 @@ namespace SlapMania.Gameplay
             float mult = Mathf.Clamp(input.Multiplier, 0f, 10f);
             int slap = System.Math.Max(0, input.SlapIndex);
             float reduction = Mathf.Clamp01(input.Reduction);
+            // Mathf.Clamp passes NaN through, which would poison raw: treat it as "no champion effect".
+            float statScale = float.IsNaN(input.StatScale) ? 1f : Mathf.Clamp(input.StatScale, ChampionRules.MinScale, ChampionRules.MaxScale);
 
             float escalation = Mathf.Pow(cfg.escalationBase, slap);
-            float raw = cfg.baseSlapDamage * power * mult * escalation * (1f - reduction) * cfg.globalDamageScale;
+            float raw = cfg.baseSlapDamage * power * mult * escalation * (1f - reduction) * statScale * cfg.globalDamageScale;
 
             int rounded = Mathf.RoundToInt(raw);
             int floored = System.Math.Max(cfg.minDamageFloor, rounded);

@@ -13,6 +13,14 @@ namespace SlapMania.Data
         [Range(0f, 1f)] public float finisherHpThreshold = 0.0f;
         [Range(0.1f, 3f)] public float globalDamageScale = 1.0f;
 
+        // Champion stats (ADR-0022): each point away from 75 moves the slap by this fraction.
+        // 0.004 puts a 99 at x1.096 and a 50 at x0.9. 0 switches the stat off.
+        [Header("Champion stats (per point from 75)")]
+        [Tooltip("Attacker's PWR: damage dealt changes by this fraction per point from 75.")]
+        [Range(0f, 0.02f)] public float powerPerPoint = 0.004f;
+        [Tooltip("Defender's CHN: damage taken drops by this fraction per point above 75.")]
+        [Range(0f, 0.02f)] public float chinPerPoint = 0.004f;
+
         // The player's defence (ADR-0019): one tap as the rival's hand comes in. Windows are the
         // distance from the brace target (impact - braceLeadMs), either side, in ms (R8). They must fit inside the
         // bout's windupMs (500), which is when the tap is listened for.

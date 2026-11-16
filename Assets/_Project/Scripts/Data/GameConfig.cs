@@ -24,6 +24,10 @@ namespace SlapMania.Data
         [Tooltip("Each bout rolls one tier near the player's ladder level (AiLadder). A win moves the level up, a loss down.")]
         public AiProfile[] aiProfiles;
 
+        [Header("Champions (M08). Optional: without a roster the bout scene's own fighters play.")]
+        [Tooltip("The Roster tab's cards and the bout's fighters. Written by the Champion Creator.")]
+        public ChampionRoster roster;
+
         [Header("Feel (presentation)")]
         public FeelConfig feel;
 
@@ -48,6 +52,8 @@ namespace SlapMania.Data
                                           { error = "holdRing is null but bout.attackMode is HoldRing"; return false; }
             if (aiProfiles == null || aiProfiles.Length == 0) { error = "aiProfiles is empty"; return false; }
             if (feel == null)             { error = "feel is null"; return false; }
+            if (roster != null && !roster.Validate(out string rosterErr))
+                                          { error = "roster: " + rosterErr; return false; }
             if (hudAttention != null && !hudAttention.Validate(out string hudErr))
                                           { error = "hudAttention: " + hudErr; return false; }
             error = null;

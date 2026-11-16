@@ -2,7 +2,7 @@
 module: M09-SnapshotCapture
 status: InProgress
 owner: shobhit
-last-verified: 2026-10-23
+last-verified: 2026-11-09
 verified-against: (pre-git)
 asmdef: SlapMania.Presentation
 ---
@@ -17,8 +17,9 @@ The rest of this doc is the target design (atlas + `SubmitRenderRequest`). The s
 
 | Piece | Where | What it does |
 |---|---|---|
-| `SlapSnapshotter` | Presentation | One disabled photo camera per bout (`CopyFrom` the gameplay camera; culling `+SnapshotOnly −HideInSnapshot −UI`; no MSAA). `Capture(defenderHead, attackerPosition, SlapShot)` renders the defender's face, 35° off the attacker's line at 1.05 m with a 36° FOV, into its own 256 x 320 `R8G8B8A8_SRGB` RenderTexture. It keeps at most 16 photos, then overwrites the weakest non-lethal one (S-037). `FillGallery(loser, Texture[], int[])`. `Dispose()` frees everything (S-033) |
-| `SlapShot`, `SnapshotPicker` | Gameplay (pure, R2) | `PickLoserGallery`: the lethal slap if any, then the loser's hardest other hits, up to the frame count, in the order they happened. Ties go to the later slap. `SlotToEvict`. Tested in `SnapshotPickerTests` |
+| `SlapSnapshotter` | Presentation | One disabled photo camera per bout (`CopyFrom` the gameplay camera; culling `+SnapshotOnly −HideInSnapshot −UI`; no MSAA). `Capture(defenderHead, attackerPosition, strikingHand, SlapShot)` renders the defender's face, off the attacker's line **on the side the palm lands** (40° and 0.26 m above the face; aimed 30% toward the palm, so the hand on the cheek is in frame) at 1.05 m with a 36° FOV, into its own 256 x 320 `R8G8B8A8_SRGB` RenderTexture. It keeps at most 16 photos, then overwrites the weakest non-lethal one (S-037). `FillGallery(loser, Texture[], int[])`. `Dispose()` frees everything (S-033) |
+| `SlapShot`, `SnapshotPicker` | Gameplay (pure, R2) | `PickLoserGallery`: the lethal slap if any, then the loser's hardest other hits, up to the frame count, in the order they happened. Ties go to the later slap. `SlotToEvict`. Tested in `SnapshotPickerTests`. `SlapShot.IsSlapshot` marks a powerful slap |
+| Slapshot | Core `SlapshotRule`, `MatchDirector`, M10 `HudSlapshot` | A landed slap that `SlapshotRule.Qualifies` (vs `BoutConfig.slapshotMinDamage`) is a **slapshot**: `MatchDirector.LastWasSlapshot`, the Snapshot state held `slapshotHoldMs` longer, and (non-lethal) the Polaroid shown by `V2Hud.ShowSlapshot` from the hero photo. Still pending: the game-over gallery showing slapshots as Polaroids (owner: later) |
 | Wiring | `BoutController` (App) | `SnapshotRequested` **and** `FinisherSnapshotRequested` -> `Capture` (every landed slap). `BoutEnd` -> `FillGallery(winner.Other())` into `HudContext.Gallery` before the HUD's handler |
 | Display | `HudResult` (M10) | Three framed photos with the slap's damage on E2 Victory (above the title) and E3 Defeat (under the coaching card) |
 | Hero photo + D4 | `SlapSnapshotter.LatestHero` / `ReplayView` (M10) | The latest slap is also rendered at 640 x 800 (one more `Camera.Render`, one 2 MiB RT for the bout). `BoutController` fills `ScreenManager.Replay` (`ReplayShot`: photo, round, damage, power, zone, multiplier, impact time) on every snapshot. D4 Instant Replay shows it in place of the mockup still. After a K.O. the K.O.'s CONTINUE plays D4 before E2/E3; from the pause menu, "Last replay" shows the latest slap. It is a **still**: GLOSSARY's "Replay" (a recorded clip) does not exist, so D4's camera/speed chips, Save and Share stay placeholders |
@@ -173,6 +174,8 @@ Idle --Init--> Ready --Capture--> Rendering --complete--> Ready --Release--> Idl
 
 | Date | Commit | Change |
 |---|---|---|
+| 2026-11-09 | (pre-git) | Snapshot camera raised 0.05 -> 0.26 m and set 40 deg off the attack line (on the palm's side): at face height the incoming arm filled the photo, and at 62 deg long hair covered the face. Picked from a 3 x 3 grid rendered from a live strike (S-106). §0 updated |
+| 2026-11-07 | (pre-git) | **Slapshots and the palm in the photo.** Owner: "each powerful slap will register a slapshot … while other player's hands touch their cheek … like a Polaroid". `SlapSnapshotter.Capture` takes the attacker's `StrikingHand`: the camera swings 35° to the side the palm lands on and aims 30% of the way from the face to the palm (before: always +35°, which photographed the back of the attacker's arm). Capture still happens on entering Snapshot, when hitstop has the palm pinned on the cheek (verified in Play: Hikaru's face with Alucard's glove on the cheek). `SlapShot.IsSlapshot` flags the powerful ones for the game-over gallery (**gallery display not changed yet - owner: later**). Polaroid: M10 `HudSlapshot`. Rule: Core `SlapshotRule` (owner-authored, see §0) |
 | 2026-10-23 | (pre-git) | **D4 Instant Replay made live** (owner: "see the snapshot screen, implement it now"). `SlapSnapshotter` keeps a hero-size latest photo (`LatestHero`, `LatestShot`) and calls `ResetAspect` per target. The bout feeds D4 through `ScreenManager.Replay`, and the K.O.'s CONTINUE goes K.O. -> D4 -> results. §0 updated. The UXML hooks were checked against the real `Replay.uxml` over MCP (fe-img, 3 k-tl tiles, caption, timeline, both links found once). **Not seen in Play yet** |
 | 2026-10-23 | (pre-git) | **First code: the pre-atlas slap gallery ([ADR-0016](../Decisions/ADR-0016-slap-gallery-pre-atlas-capture.md)).** Owner: "a snapshot per punch landing, and 3 snapshots of the player who lost on the game-over screen". New `SlapSnapshotter` (Presentation), plus `SlapShot` and `SnapshotPicker` (Gameplay, pure), wired in `BoutController` and shown by `HudResult`. New §0. Status Draft -> InProgress. Tests: `SnapshotPickerTests` (7). **Not verified in Play or on device:** the photo framing, and that `Camera.Render` produces a non-black tile (S-030) on GLES3 |
 | 2026-09-19 | (pre-git) | Created (Draft) with atlas design, URP 17 constraints, and failure modes |

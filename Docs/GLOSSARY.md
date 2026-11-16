@@ -67,7 +67,8 @@ spells it that way and nothing else.** This is what stops `power` / `charge` /
 | **Tile** | One snapshot's slot in the atlas | `SnapshotHandle` | Cell |
 | **Gallery** | The ordered collection of a match's snapshots. Today the result screens (victory **and** defeat) show the loser's three: the finisher plus their hardest hits, in order ([ADR-0016](Decisions/ADR-0016-slap-gallery-pre-atlas-capture.md)) | `SnapshotGallery` (planned); today `SlapSnapshotter.FillGallery`, `HudContext.Gallery` | Album |
 | **Album** | The persisted cross-bout archive of saved JPEGs on disk | `SnapshotArchive` | Gallery |
-| **Polaroid** | The in-bout pop-up card showing the snapshot just taken | `PolaroidPop` | Gallery card |
+| **Slapshot** | A snapshot of a *powerful* slap (`SlapshotRule`, threshold `BoutConfig.slapshotMinDamage`): the slapped fighter with the attacker's palm on their cheek. Shown as a Polaroid mid-bout while the director holds the Snapshot state (`slapshotHoldMs`); flagged on the shot for the game-over gallery | `SlapshotRule`, `MatchDirector.LastWasSlapshot`, `SlapShot.IsSlapshot` | Slap shot (two words), Highlight |
+| **Polaroid** | The in-bout pop-up card showing a slapshot: SLAPSHOT! header, the photo developing from white, the slapped fighter's name and the slap's damage, zone and power | `HudSlapshot` | Gallery card |
 
 Note the collision hazard: **Snapshot** means a photo in gameplay, but Unity also
 calls an `AudioMixer` state a snapshot. In audio code always write
@@ -122,6 +123,9 @@ calls an `AudioMixer` state a snapshot. In audio code always write
 | **Tuning Hub** | The editor-only object whose Inspector shows every config asset and scene feel component in one place | `TuningHub` |
 | **Arena look** | The asset of arena lighting and atmosphere values (lights, ambient, fog, impact flash, beam sweep), applied live by `ArenaDirector` | `ArenaLookConfig` |
 | **Rig profile** | A fighter's animation, IK, hit-spring and knock-out tuning asset | `FighterRigProfile` |
+| **Champion stats** | A champion's six 0..99 card stats; 75 is neutral. PWR scales damage dealt, CHN damage taken, STA max health; SPD, TEC, RAG are card-only ([ADR-0022](Decisions/ADR-0022-champion-roster-and-stats.md)) | `ChampionStats`, `ChampionRules` |
+| **Roster** | The ordered list of selectable champions (the FIGHTERS tab) | `ChampionRoster`, `GameConfig.roster` |
+| **Champion Creator** | The editor tool that turns a rigged FBX into a champion (prefab, portrait, definition, roster entry) | `ChampionCreator`, `ChampionCreatorWindow` |
 
 ## Front end (M10, [ADR-0013](Decisions/ADR-0013-ui-toolkit-front-end-from-mockups.md))
 

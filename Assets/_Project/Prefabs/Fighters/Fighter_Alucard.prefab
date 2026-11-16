@@ -87,7 +87,8 @@ MonoBehaviour:
   _animator: {fileID: 7442436144550317477}
   _profile: {fileID: 11400000, guid: 732488593d17417469fa704a6ff3a5aa, type: 2}
   _ik: {fileID: 7674471325650775493}
-  _hitReactor: {fileID: 5863231524041082039}
+  _hitReactor: {fileID: 0}
+  _physics: {fileID: 1367661608841859975}
   _ragdoll: {fileID: 5994400374570277083}
   _hidden:
   - {fileID: 6104758008228903447}
@@ -203,7 +204,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 20c28491ba0a4f34dbc171444e212b17,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5863231524041082039}
+      addedObject: {fileID: 1367661608841859975}
     - targetCorrespondingSourceObject: {fileID: -8699787447509501512, guid: 20c28491ba0a4f34dbc171444e212b17,
         type: 3}
       insertIndex: -1
@@ -1040,7 +1041,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SlapMania.Presentation::SlapMania.Presentation.SlapIK
   _profile: {fileID: 11400000, guid: 732488593d17417469fa704a6ff3a5aa, type: 2}
---- !u!114 &5863231524041082039
+--- !u!114 &1367661608841859975
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1049,10 +1050,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 4243275156924829029}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f628b1a9e15c2a4f886d22cf22d69f1, type: 3}
+  m_Script: {fileID: 11500000, guid: 4dbbb413d561a7944b875271973698b3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: SlapMania.Presentation::SlapMania.Presentation.HitReactor
+  m_EditorClassIdentifier: SlapMania.Presentation::SlapMania.Presentation.PhysicalAnimationLayer
   _profile: {fileID: 11400000, guid: 732488593d17417469fa704a6ff3a5aa, type: 2}
+  _ik: {fileID: 7674471325650775493}
 --- !u!1 &5188256765242196836 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9088872756827976528, guid: 20c28491ba0a4f34dbc171444e212b17,

@@ -49,10 +49,13 @@ namespace SlapMania.Editor
         private const string MenuRoot = "Tools/Slap Mania/Prototype/";
 
         // World layout. The player stands screen-right to match the V2 scorebug (YOU on the right).
-        // Humanoids slap across the podium: measured at contact, the hand reaches 0.77-0.79 m
-        // forward and the rival's cheek sits 0.20 m inside their root, so roots 0.98 m apart put
-        // the cheek at the hand with the 0.45 m podium between them.
-        private const float HumanoidX = 0.49f;
+        // Humanoids slap across the podium (ADR-0023). With the authored slap set and every
+        // champion at one humanScale (FighterFit), nothing below the tabletop comes more than
+        // 0.23 m forward of a fighter's root (Hikaru: 0.31 m for a few frames of recovery), and
+        // the leaning contact pose reaches ~0.7 m. Roots 0.84 m apart leave 0.24 m between body
+        // and table edge, put the rival's cheek (0.11 m in front of their root) at the hand, and
+        // fit the 0.36 m podium between them. Re-measure if a clip or the target scale changes.
+        public const float HumanoidX = 0.42f;
         private const float CapsuleX = 0.8f;
         // Side-on, face height: both fighters, the podium and a KO fall fit a 9:16 frame at
         // ~4.7 m, with the jumbotron in the upper third.

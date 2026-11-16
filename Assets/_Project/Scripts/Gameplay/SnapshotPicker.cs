@@ -9,13 +9,16 @@ namespace SlapMania.Gameplay
         public readonly FighterSlot Defender;
         public readonly int Damage;
         public readonly bool IsLethal;
+        /// A powerful slap (SlapshotRule): shown as a Polaroid, and the game-over gallery's pick.
+        public readonly bool IsSlapshot;
 
-        public SlapShot(int slapIndex, FighterSlot defender, int damage, bool isLethal)
+        public SlapShot(int slapIndex, FighterSlot defender, int damage, bool isLethal, bool isSlapshot = false)
         {
             SlapIndex = slapIndex;
             Defender = defender;
             Damage = damage;
             IsLethal = isLethal;
+            IsSlapshot = isSlapshot;
         }
     }
 

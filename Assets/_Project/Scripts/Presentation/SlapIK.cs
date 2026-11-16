@@ -36,6 +36,8 @@ namespace SlapMania.Presentation
             HumanBodyBones.LeftLittleProximal, HumanBodyBones.LeftLittleIntermediate, HumanBodyBones.LeftLittleDistal,
         };
 
+        private const float ReachShare = 0.95f;   // never ask the arm for its full, locked-out length
+
         private Animator _anim;
         private IFighterView _opponent;
         private Transform _rightShoulder, _leftShoulder;
@@ -47,9 +49,19 @@ namespace SlapMania.Presentation
         private bool _striking;
         private bool _rightHand = true;
         private float _contactAt;
+        private float _armLength, _torsoLength;
+
+        // Feet planted on the idle stance (charge, slap, hit): captured clips walk and spin.
+        private bool _planted, _hasStance;
+        private float _plant;
+        private Vector3 _stanceL, _stanceR;
+        private Quaternion _stanceRotL, _stanceRotR;
 
         /// 0..1 — how strongly the hand is pinned to the cheek this frame.
         public float StrikeWeight { get; private set; }
+
+        /// The current (or last) strike's hand: the physical-animation layer pins that arm.
+        public bool StrikingRight => _rightHand;
 
         public FighterRigProfile Profile { get => _profile; set => _profile = value; }
 
@@ -80,7 +92,24 @@ namespace SlapMania.Presentation
             _striking = true;
             _rightHand = rightHand;
             _contactAt = Time.time + Mathf.Max(0f, secondsToContact);
+            MeasureReach();
         }
+
+        // At strike time, not Awake: ChampionSpawner scales the fighter after it is instantiated.
+        private void MeasureReach()
+        {
+            var upper = _anim.GetBoneTransform(_rightHand ? HumanBodyBones.RightUpperArm : HumanBodyBones.LeftUpperArm);
+            var lower = _anim.GetBoneTransform(_rightHand ? HumanBodyBones.RightLowerArm : HumanBodyBones.LeftLowerArm);
+            var hand = _anim.GetBoneTransform(_rightHand ? HumanBodyBones.RightHand : HumanBodyBones.LeftHand);
+            var hips = _anim.GetBoneTransform(HumanBodyBones.Hips);
+            if (upper == null || lower == null || hand == null || hips == null) { _armLength = _torsoLength = 0f; return; }
+            _armLength = Vector3.Distance(upper.position, lower.position) + Vector3.Distance(lower.position, hand.position);
+            _torsoLength = Vector3.Distance(hips.position, upper.position);
+        }
+
+        /// Charge, slap and hit: feet held on the idle stance, whole-body turn reduced (the mocap
+        /// was captured walking and spinning; the table is 0.24 m away).
+        public void SetPlanted(bool planted) => _planted = planted;
 
         public void Cancel()
         {
@@ -111,7 +140,9 @@ namespace SlapMania.Presentation
 
         private void OnAnimatorIK(int layerIndex)
         {
-            if (_profile == null || _opponent == null) return;
+            if (_profile == null) return;
+            UpdatePlant();
+            if (_opponent == null) return;
 
             var head = _opponent.HeadAnchor;
             if (head != null)
@@ -132,7 +163,11 @@ namespace SlapMania.Presentation
                 return;
             }
 
-            Vector3 target = _opponent.GetStrikePoint(transform.position);
+            // A slap lands on the cheek on the striking hand's side, not the front of the face: a
+            // right hand swinging across meets the cheek on the attacker's right.
+            Vector3 target = _opponent.GetStrikePoint(transform.position)
+                           + transform.right * ((_rightHand ? 1f : -1f) * _profile.cheekSideOffset);
+            LeanIntoReach(target);
             _anim.SetIKPositionWeight(goal, StrikeWeight * _profile.ikPositionWeight);
             _anim.SetIKPosition(goal, target);
 
@@ -145,6 +180,83 @@ namespace SlapMania.Presentation
                 _anim.SetIKRotationWeight(goal, StrikeWeight * _profile.ikRotationWeight);
                 _anim.SetIKRotation(goal, palm);
             }
+        }
+
+        // The cheek is often beyond arm's reach from an upright stance (a captured slap was thrown
+        // from closer than the table allows). Pitch the body toward it by just the shortfall,
+        // minus any lean the clip already has, with the feet held where the clip put them.
+        private void LeanIntoReach(Vector3 target)
+        {
+            if (_profile.maxStrikeLeanDeg > 0f && _torsoLength > 1e-3f)
+            {
+                Vector3 toTarget = target - _anim.bodyPosition;
+                toTarget.y = 0f;
+                float shortfall = toTarget.magnitude - _armLength * ReachShare;
+                if (shortfall > 0f && toTarget.sqrMagnitude > 1e-6f)
+                {
+                    float wanted = Mathf.Asin(Mathf.Clamp01(shortfall / _torsoLength)) * Mathf.Rad2Deg;
+                    Vector3 fwd = _anim.bodyRotation * Vector3.forward;
+                    float already = Mathf.Max(0f, -Mathf.Asin(Mathf.Clamp(fwd.y, -1f, 1f)) * Mathf.Rad2Deg);
+                    float deg = Mathf.Clamp(wanted - already, 0f, _profile.maxStrikeLeanDeg) * StrikeWeight;
+                    if (deg > 0.01f)
+                    {
+                        // Read the feet before the body moves: they stay where they were put.
+                        HoldFoot(AvatarIKGoal.LeftFoot);
+                        HoldFoot(AvatarIKGoal.RightFoot);
+                        _anim.bodyRotation = Quaternion.AngleAxis(deg, Vector3.Cross(Vector3.up, toTarget.normalized)) * _anim.bodyRotation;
+                    }
+                }
+            }
+        }
+
+        private void HoldFoot(AvatarIKGoal foot)
+        {
+            _anim.SetIKPosition(foot, _anim.GetIKPosition(foot));
+            _anim.SetIKRotation(foot, _anim.GetIKRotation(foot));
+            _anim.SetIKPositionWeight(foot, 1f);
+            _anim.SetIKRotationWeight(foot, 1f);
+        }
+
+        // Owns the foot goals every frame. Off: remembers where the idle puts the feet. On: holds
+        // them there and takes back most of the clip's body turn, so the legs stay plausible.
+        private void UpdatePlant()
+        {
+            float step = Time.deltaTime / Mathf.Max(0.001f, _profile.plantBlendMs * 0.001f);
+            _plant = Mathf.MoveTowards(_plant, _planted && _hasStance ? 1f : 0f, step);
+            var root = transform;
+            if (_plant <= 0f)
+            {
+                _stanceL = root.InverseTransformPoint(_anim.GetIKPosition(AvatarIKGoal.LeftFoot));
+                _stanceR = root.InverseTransformPoint(_anim.GetIKPosition(AvatarIKGoal.RightFoot));
+                _stanceRotL = Quaternion.Inverse(root.rotation) * _anim.GetIKRotation(AvatarIKGoal.LeftFoot);
+                _stanceRotR = Quaternion.Inverse(root.rotation) * _anim.GetIKRotation(AvatarIKGoal.RightFoot);
+                _hasStance = true;
+                SetFoot(AvatarIKGoal.LeftFoot, 0f, Vector3.zero, Quaternion.identity);
+                SetFoot(AvatarIKGoal.RightFoot, 0f, Vector3.zero, Quaternion.identity);
+                return;
+            }
+
+            float w = Smooth(_plant);
+            SetFoot(AvatarIKGoal.LeftFoot, w, root.TransformPoint(_stanceL), root.rotation * _stanceRotL);
+            SetFoot(AvatarIKGoal.RightFoot, w, root.TransformPoint(_stanceR), root.rotation * _stanceRotR);
+
+            Vector3 fwd = Vector3.ProjectOnPlane(_anim.bodyRotation * Vector3.forward, Vector3.up);
+            if (fwd.sqrMagnitude > 1e-6f)
+            {
+                float yaw = Vector3.SignedAngle(root.forward, fwd, Vector3.up);
+                _anim.bodyRotation = Quaternion.AngleAxis(-yaw * (1f - _profile.plantedYawKeep) * w, Vector3.up) * _anim.bodyRotation;
+            }
+        }
+
+        private void SetFoot(AvatarIKGoal foot, float weight, Vector3 position, Quaternion rotation)
+        {
+            if (weight > 0f)
+            {
+                _anim.SetIKPosition(foot, position);
+                _anim.SetIKRotation(foot, rotation);
+            }
+            _anim.SetIKPositionWeight(foot, weight);
+            _anim.SetIKRotationWeight(foot, weight);
         }
 
         // After animation and IK: open the striking hand for the slap.

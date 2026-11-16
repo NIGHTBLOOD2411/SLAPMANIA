@@ -62,3 +62,13 @@ sysinfo.txt
 # ---- Python bytecode ----
 __pycache__/
 *.py[cod]
+
+# Signing keys never go to the repo (the Android keystore lives in KeyStore/ locally)
+KeyStore/
+*.keystore
+*.jks
+
+# Unity build-tool cache and crash-recovery scenes
+.utmp/
+Assets/_Recovery/
+Assets/_Recovery.meta

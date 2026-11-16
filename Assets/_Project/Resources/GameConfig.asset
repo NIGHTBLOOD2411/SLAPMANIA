@@ -24,6 +24,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bb909a7e40564ef4e88d0fad04902de2, type: 2}
   - {fileID: 11400000, guid: 2f38208f655cb2443a142f96afdd4a01, type: 2}
   - {fileID: 11400000, guid: 4dc003676a477114c9d02fef72e54516, type: 2}
+  roster: {fileID: 11400000, guid: e55701ec1cf383448a4e6ee27ca11837, type: 2}
   feel: {fileID: 11400000, guid: 3d8f66e5c5455774bb1e271e07ac5675, type: 2}
   hudAttention: {fileID: 11400000, guid: 2439bde5b68fb724aae5b6d1ca0b5dfc, type: 2}
   uiMotion: {fileID: 11400000, guid: b4e0c2d28fbb6e549a21745842d23142, type: 2}

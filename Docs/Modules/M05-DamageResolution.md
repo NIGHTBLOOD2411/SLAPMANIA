@@ -2,7 +2,7 @@
 module: M05-DamageResolution
 status: InProgress
 owner: shobhit
-last-verified: 2026-10-23
+last-verified: 2026-10-25
 verified-against: (pre-git)
 asmdef: SlapMania.Gameplay
 ---
@@ -111,6 +111,10 @@ The ceiling at slap 5 is 99 — just under 100 HP, so a one-shot from full healt
 
 **Why escalation matters:** without it, two bad players trading floor-3 slaps play a 34-turn match (100/3 each). With `1.06^slapIndex`, slap 8 deals floor 4 and slap 15 deals floor 7. The practical worst case drops to ~20 turns. The `maxRounds` safety valve in M01 catches anything beyond that.
 
+### Champion stat scale ([ADR-0022](../Decisions/ADR-0022-champion-roster-and-stats.md))
+
+`raw *= clamp(StatScale, 0.25, 4)` (NaN -> 1). `StatScale = ChampionRules.SlapScale(attacker, defender, powerPerPoint, chinPerPoint)` = `StatScale(attacker.power, +k) * StatScale(defender.chin, -k)`; 75 is neutral. Applied before the floor, so the 3-damage floor still holds.
+
 ## 6. State machine
 
 None — this module is stateless. `Resolve` is a pure function; `Commit` is a one-shot mutator.
@@ -161,6 +165,7 @@ None — this module is stateless. `Resolve` is a pure function; `Commit` is a o
 
 | Date | Commit | Change |
 |---|---|---|
+| 2026-10-25 | (pre-git) | **Champion stat scale ([ADR-0022](../Decisions/ADR-0022-champion-roster-and-stats.md)).** `DamageInput.StatScale` (optional, default 1) multiplies raw damage; clamped to `[ChampionRules.MinScale, MaxScale]`, NaN = 1. New Core `ChampionStats` / `ChampionRules` (`StatScale`, `SlapScale`, `MaxHp`, `PickOpponent`) and `DamageConfig.powerPerPoint` / `chinPerPoint` (0.004). Tests: `ChampionRulesTests`. |
 | 2026-10-23 | (pre-git) | **Brace defence ([ADR-0019](../Decisions/ADR-0019-brace-tap-defence.md)).** New Core `BraceResult`/`BraceGrade`, pure Gameplay `BraceJudge`, and `DamageConfig` brace fields (ms, R8). `DamageInput.Reduction` now carries the brace on the rival's turn. §3 and §10 updated (the "reduction stays 0" rule is superseded). Tests: `BraceTests` (17: grades, ±1 µs window edges on both sides, NaN/±inf taps, NaN/negative bias, clamped reductions, huge offsets; FSM: a Perfect brace halves and commits, no tap, mashing flinches, disabled, a brace saves from a lethal slap, player turns never open the window). EditMode 284/284 |
 | 2026-09-19 | (pre-git) | Created (Draft) with the formula and worked outcomes |
 | 2026-09-19 | (pre-git) | **P3 code landed.** Static `DamageResolver.Resolve` (pure) and `Commit` in `SlapMania.Gameplay`; `DamageConfig` SO in `SlapMania.Data`. Adds a `globalDamageScale` field per TUNING-BIBLE §3 (default 1.0). **Deviation:** `critThreshold` in the config defaults to **2.00** (matching GLOSSARY + TUNING-BIBLE §3), not the **2.50** printed in §4 of this doc — §4 needs a follow-up edit. EditMode tests cover: floor applied when raw < floor, escalation makes later slaps hit harder, crit triggers at exactly the threshold, exact-zero HP is lethal without overkill, overkill is recorded when clamped. |
